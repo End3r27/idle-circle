@@ -1,5 +1,5 @@
 import { PlayerStats } from '../types'
-import { getClassById, PlayerClass } from '../types/classes'
+import { getClassById } from '../types/classes'
 
 export interface ClassBattleState {
   huntersMarkStacks?: number
@@ -89,8 +89,6 @@ export const processClassPassives = (
   let bonusAttack = 0
 
   playerClass.passives.forEach(passive => {
-    const effect = passive.effect
-
     switch (passive.id) {
       case 'battle_hardened':
         // +5% damage reduction per battle survived
@@ -207,7 +205,7 @@ export const shouldForceFirstAttackCrit = (
 
   // Check for Forest Camouflage passive
   const hasForestCamouflage = playerClass.passives.some(p => p.id === 'forest_camouflage')
-  return hasForestCamouflage && battleState.isFirstAttack
+  return hasForestCamouflage && (battleState.isFirstAttack ?? false)
 }
 
 export const getExperienceMultiplier = (classId: string | undefined): number => {
@@ -235,7 +233,7 @@ export const canSurviveLethalDamage = (
   return hasUnstoppableForce && (battleState.attacksReceived || 0) < 3
 }
 
-export const initializeBattleState = (classId: string | undefined): ClassBattleState => {
+export const initializeBattleState = (_classId: string | undefined): ClassBattleState => {
   return {
     huntersMarkStacks: 0,
     rampageStacks: 0,

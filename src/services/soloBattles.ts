@@ -21,8 +21,7 @@ import {
   shouldForceFirstAttackCrit,
   getExperienceMultiplier,
   canSurviveLethalDamage,
-  initializeBattleState,
-  ClassBattleState
+  initializeBattleState
 } from './classSystem'
 
 export const createSoloBattle = async (

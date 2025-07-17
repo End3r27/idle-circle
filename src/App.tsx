@@ -34,7 +34,7 @@ function App() {
   if (!user.playerClass) {
     return (
       <ClassSelection 
-        onClassSelected={(classId) => {
+        onClassSelected={() => {
           // The component handles the database update
           // The user will be updated via auth context
           window.location.reload()
