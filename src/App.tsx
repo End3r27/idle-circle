@@ -11,8 +11,14 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="animate-pulse-slow">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 animate-glow"></div>
+          </div>
+          <div className="text-white text-xl font-medium">Loading Idle Circle...</div>
+          <div className="text-gray-400 text-sm mt-2">Preparing your adventure</div>
+        </div>
       </div>
     )
   }
@@ -23,7 +29,7 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-black text-white">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/circle/:id" element={<Circle />} />

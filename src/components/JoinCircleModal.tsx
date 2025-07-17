@@ -38,9 +38,15 @@ export default function JoinCircleModal({ isOpen, onClose, onSuccess }: JoinCirc
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-white mb-4">Join Circle</h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="glass-effect rounded-2xl p-8 w-full max-w-md animate-fade-in">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-500 to-blue-600 animate-glow flex items-center justify-center">
+            <span className="text-2xl">🚪</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Join Circle</h2>
+          <p className="text-gray-400 text-sm">Enter an invite code to join</p>
+        </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
