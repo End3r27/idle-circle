@@ -3,13 +3,13 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  // Add your Firebase config here
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  // Replace with your actual Firebase config from console.firebase.google.com
+  apiKey: "your-actual-api-key",
+  authDomain: "your-actual-project.firebaseapp.com",
+  projectId: "your-actual-project-id",
+  storageBucket: "your-actual-project.appspot.com",
+  messagingSenderId: "your-actual-sender-id",
+  appId: "your-actual-app-id"
 }
 
 const app = initializeApp(firebaseConfig)
