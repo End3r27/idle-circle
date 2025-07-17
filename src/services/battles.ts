@@ -79,20 +79,31 @@ export const simulateBattle = async (
   players: (Player & { id: string })[]
 ): Promise<void> => {
   try {
+    console.log('Starting battle simulation for:', battleId, 'with players:', players.length)
     const battleRef = doc(db, 'battles', battleId)
     const battleDoc = await getDoc(battleRef)
     
-    if (!battleDoc.exists()) return
+    if (!battleDoc.exists()) {
+      console.error('Battle document not found:', battleId)
+      return
+    }
     
     const battle = battleDoc.data() as Battle
+    console.log('Battle data loaded:', battle)
     
     // Get players for each team
     const team1Players = players.filter(p => battle.teams?.team1.includes(p.userId))
     const team2Players = players.filter(p => battle.teams?.team2.includes(p.userId))
     
+    console.log('Team 1 players:', team1Players.length, team1Players)
+    console.log('Team 2 players:', team2Players.length, team2Players)
+    
     // Calculate team stats
     const team1Stats = calculateTeamStats(team1Players)
     const team2Stats = calculateTeamStats(team2Players)
+    
+    console.log('Team 1 stats:', team1Stats)
+    console.log('Team 2 stats:', team2Stats)
     
     // Simulate battle rounds
     const logs: string[] = []
@@ -134,6 +145,7 @@ export const simulateBattle = async (
     const rewards = generateBattleRewards(battle.participants, winner, battle.teams || { team1: [], team2: [] })
     
     // Update battle with results
+    console.log('Updating battle with results:', { winner, rewards, logs })
     await updateDoc(battleRef, {
       result: {
         winner,
@@ -143,16 +155,20 @@ export const simulateBattle = async (
       completedAt: new Date(),
       status: 'completed'
     })
+    console.log('Battle updated successfully')
     
     // Update circle last battle time
     if (battle.circleId) {
+      console.log('Updating circle last battle time for:', battle.circleId)
       await updateDoc(doc(db, 'circles', battle.circleId), {
         lastBattleAt: new Date().toISOString()
       })
     }
     
     // Award rewards to players
+    console.log('Awarding rewards to players')
     await awardRewards(rewards)
+    console.log('Battle simulation completed successfully')
     
   } catch (error) {
     console.error('Error simulating battle:', error)
@@ -260,6 +276,7 @@ export const getBattleHistory = async (
   limitCount: number = 10
 ): Promise<Battle[]> => {
   try {
+    console.log('Fetching battle history for circle:', circleId)
     const battlesQuery = query(
       collection(db, 'battles'),
       where('circleId', '==', circleId),
@@ -268,10 +285,13 @@ export const getBattleHistory = async (
     )
     
     const snapshot = await getDocs(battlesQuery)
-    return snapshot.docs.map(doc => ({
+    const battles = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as Battle[]
+    
+    console.log('Found battles:', battles.length, battles)
+    return battles
   } catch (error) {
     console.error('Error fetching battle history:', error)
     return []
