@@ -13,12 +13,22 @@ export default function BattleHistory({ circleId }: BattleHistoryProps) {
 
   useEffect(() => {
     loadBattles()
+    
+    // Auto-refresh every 10 seconds to catch new battles
+    const interval = setInterval(loadBattles, 10000)
+    return () => clearInterval(interval)
   }, [circleId])
 
   const loadBattles = async () => {
     setLoading(true)
-    const history = await getBattleHistory(circleId)
-    setBattles(history)
+    try {
+      console.log('Loading battle history for circle:', circleId)
+      const history = await getBattleHistory(circleId)
+      console.log('Battle history loaded:', history)
+      setBattles(history)
+    } catch (error) {
+      console.error('Error loading battle history:', error)
+    }
     setLoading(false)
   }
 

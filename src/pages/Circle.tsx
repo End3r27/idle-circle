@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getCircleMembers } from '../services/circles'
+import { getCircleMembers, ensurePlayerExists } from '../services/circles'
 import { scheduleAutoBattle } from '../services/battles'
 import { getPlayerLoadout, getRoleColor } from '../services/loadouts'
 import { User, Player } from '../types'
@@ -57,6 +57,13 @@ export default function Circle() {
       // Get members
       const circleMembers = await getCircleMembers(id)
       setMembers(circleMembers)
+      
+      // Ensure all members have player records
+      await Promise.all(
+        circleMembers.map(async (member) => {
+          await ensurePlayerExists(member.id, id)
+        })
+      )
       
       // Get player loadout data
       const playerData = await Promise.all(

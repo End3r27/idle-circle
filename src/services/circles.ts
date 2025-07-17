@@ -264,6 +264,68 @@ export const updateCircleSettings = async (
   }
 }
 
+export const ensurePlayerExists = async (
+  userId: string,
+  circleId: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // Check if player record already exists
+    const playersQuery = query(
+      collection(db, 'players'),
+      where('userId', '==', userId),
+      where('circleId', '==', circleId)
+    )
+    
+    const playerSnapshot = await getDocs(playersQuery)
+    
+    if (!playerSnapshot.empty) {
+      return { success: true } // Player already exists
+    }
+    
+    // Check if user is actually a member of the circle
+    const circleDoc = await getDoc(doc(db, 'circles', circleId))
+    if (!circleDoc.exists()) {
+      return { success: false, error: 'Circle not found' }
+    }
+    
+    const circle = circleDoc.data() as Circle
+    if (!circle.members.includes(userId)) {
+      return { success: false, error: 'User is not a member of this circle' }
+    }
+    
+    // Create player record
+    const playerData: Omit<Player, 'userId'> = {
+      circleId,
+      role: 'offense',
+      level: 1,
+      experience: 0,
+      loadout: {},
+      stats: {
+        attack: 10,
+        defense: 10,
+        health: 100,
+        speed: 10,
+        critRate: 0.05,
+        critDamage: 1.5
+      },
+      joinedAt: new Date(),
+      isOnline: true
+    }
+
+    await addDoc(collection(db, 'players'), {
+      userId,
+      ...playerData
+    })
+
+    // Generate starter equipment if user doesn't have any
+    await generateStarterGear(userId)
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
 const generateInviteCode = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let result = ''

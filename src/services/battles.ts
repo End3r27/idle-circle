@@ -18,6 +18,8 @@ export const createCircleBattle = async (
   type: 'auto' | 'event' | 'challenge' = 'auto'
 ): Promise<{ success: boolean; battleId?: string; error?: string }> => {
   try {
+    console.log('Creating circle battle for:', circleId, 'type:', type)
+    
     // Get circle data
     const circleDoc = await getDoc(doc(db, 'circles', circleId))
     if (!circleDoc.exists()) {
@@ -35,8 +37,10 @@ export const createCircleBattle = async (
       ...doc.data() 
     })) as (Player & { id: string })[]
     
+    console.log('Found players for battle:', players.length, players)
+    
     if (players.length < 2) {
-      return { success: false, error: 'Need at least 2 players for battle' }
+      return { success: false, error: `Need at least 2 players for battle. Found ${players.length} players. Make sure all circle members have joined as players.` }
     }
     
     // Split players into two teams randomly

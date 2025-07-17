@@ -14,13 +14,25 @@ export default function ManualBattle({ circleId, onBattleCreated }: ManualBattle
     setLoading(true)
     setMessage('')
 
-    const result = await createCircleBattle(circleId, 'challenge')
-    
-    if (result.success) {
-      setMessage('Battle started successfully!')
-      onBattleCreated()
-    } else {
-      setMessage(`Error: ${result.error}`)
+    try {
+      console.log('Starting battle for circle:', circleId)
+      const result = await createCircleBattle(circleId, 'challenge')
+      console.log('Battle creation result:', result)
+      
+      if (result.success) {
+        setMessage(`Battle started successfully! Battle ID: ${result.battleId}`)
+        onBattleCreated()
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          setMessage('')
+        }, 5000)
+      } else {
+        setMessage(`Error: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error starting battle:', error)
+      setMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
     
     setLoading(false)
@@ -40,7 +52,7 @@ export default function ManualBattle({ circleId, onBattleCreated }: ManualBattle
           disabled={loading}
           className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Starting Battle...' : '⚔️ Start Battle Now'}
+          {loading ? 'Starting Battle...' : '⚔��� Start Battle Now'}
         </button>
         
         {message && (
@@ -50,6 +62,10 @@ export default function ManualBattle({ circleId, onBattleCreated }: ManualBattle
             {message}
           </div>
         )}
+        
+        <div className="text-xs text-gray-500">
+          💡 After starting a battle, check the Battle History section below to see the results.
+        </div>
       </div>
     </div>
   )
