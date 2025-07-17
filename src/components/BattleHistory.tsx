@@ -86,8 +86,8 @@ export default function BattleHistory({ circleId }: BattleHistoryProps) {
               </div>
               
               <div className="flex justify-between text-sm">
-                <span>Team 1: {battle.teams?.team1.length || 0} players</span>
-                <span>Team 2: {battle.teams?.team2.length || 0} players</span>
+                <span>Team 1: {battle.teams?.team1?.length || 0} players</span>
+                <span>Team 2: {battle.teams?.team2?.length || 0} players</span>
               </div>
               
               {battle.result.winner !== 'draw' && (
