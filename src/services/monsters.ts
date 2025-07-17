@@ -993,11 +993,11 @@ export const generateMonster = (playerLevel: number, playerCount: number = 1): M
     ? suitableTemplates[Math.floor(Math.random() * suitableTemplates.length)]
     : MONSTER_TEMPLATES[0]
   
-  // Generate monster level (±3 levels from player for more variety)
-  const monsterLevel = Math.max(1, playerLevel + Math.floor(Math.random() * 7) - 3)
+  // Generate monster level (1-5 levels above player for more challenge)
+  const monsterLevel = Math.max(1, playerLevel + Math.floor(Math.random() * 5) + 1)
   
   // Scale stats based on level and player count
-  const levelMultiplier = 1 + (monsterLevel - 1) * 0.18
+  const levelMultiplier = 1 + (monsterLevel - 1) * 0.25
   const groupMultiplier = Math.sqrt(playerCount) * 0.9
   
   const scaledStats: PlayerStats = {

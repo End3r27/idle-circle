@@ -8,6 +8,7 @@ import Forge from './pages/Forge'
 import InventoryPage from './pages/Inventory'
 import SoloBattles from './pages/SoloBattles'
 import ClassSelection from './components/ClassSelection'
+import './styles/burst-animations.css'
 
 function App() {
   const { user, loading } = useAuth()

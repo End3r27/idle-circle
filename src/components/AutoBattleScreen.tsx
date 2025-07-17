@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Battle, User } from '../types'
 import { getMonsterRarityColor, getMonsterRarityName } from '../services/monsters'
+import { CLASS_DEFINITIONS } from '../types/classes'
 
 interface AutoBattleScreenProps {
   battle: Battle
@@ -22,6 +23,7 @@ export default function AutoBattleScreen({
   const [monsterHealth, setMonsterHealth] = useState(100)
   const [battlePhase, setBattlePhase] = useState<'starting' | 'fighting' | 'finished'>('starting')
   const [animatingDamage, setAnimatingDamage] = useState<'player' | 'monster' | null>(null)
+  const [burstAnimation, setBurstAnimation] = useState<string | null>(null)
 
   const monster = battle.monster!
   const logs = battle.result.logs
@@ -51,6 +53,20 @@ export default function AutoBattleScreen({
       const log = logs[i]
       const playerDamageMatch = log.match(/Player deals (\d+) damage/)
       const monsterDamageMatch = log.match(/Monster deals (\d+) damage/)
+      const burstMatch = log.match(/💥 (.+)! .+ unleashes their ultimate ability!/)
+      
+      // Check for burst ability trigger
+      if (burstMatch) {
+        const burstName = burstMatch[1]
+        const userClass = CLASS_DEFINITIONS.find((c: any) => c.id === user.playerClass)
+        const burstAbility = userClass?.burst
+        
+        if (burstAbility && burstAbility.name === burstName) {
+          setBurstAnimation(burstAbility.animation.name)
+          // Clear burst animation after a few seconds
+          setTimeout(() => setBurstAnimation(null), 4000)
+        }
+      }
       
       if (playerDamageMatch) {
         const damage = parseInt(playerDamageMatch[1])
@@ -99,6 +115,32 @@ export default function AutoBattleScreen({
           </p>
         </div>
 
+        {/* Burst Effect Overlay */}
+        {burstAnimation && (
+          <div className="absolute inset-0 pointer-events-none z-50">
+            <div className={`w-full h-full burst-overlay-${burstAnimation} opacity-80`}>
+              {/* Particle effects */}
+              <div className="absolute inset-0 overflow-hidden">
+                {[...Array(20)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`absolute w-2 h-2 bg-white rounded-full animate-pulse burst-particle-${i}`}
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 2}s`,
+                      animationDuration: `${1 + Math.random() * 2}s`
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl font-bold text-white animate-bounce">
+                💥
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Battle Arena */}
         <div className="p-8">
           <div className="grid grid-cols-3 gap-8 items-center mb-8">
@@ -106,12 +148,23 @@ export default function AutoBattleScreen({
             <div className="text-center">
               <div className={`w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-6xl transition-all duration-500 ${
                 animatingDamage === 'player' ? 'animate-pulse scale-110 ring-4 ring-red-500' : ''
-              }`}>
+              } ${burstAnimation ? `burst-${burstAnimation}` : ''}`}>
                 👤
               </div>
               <div className="space-y-2">
                 <h3 className="text-xl font-bold text-white">{user.displayName}</h3>
                 <div className="text-sm text-gray-400">Level {user.level}</div>
+                
+                {/* Burst Ability Status */}
+                {(() => {
+                  const userClass = CLASS_DEFINITIONS.find((c: any) => c.id === user.playerClass);
+                  const burstAbility = userClass?.burst;
+                  return burstAbility ? (
+                    <div className="text-xs text-purple-400">
+                      💥 {burstAbility.name} Ready
+                    </div>
+                  ) : null;
+                })()}
                 
                 {/* Player Health Bar */}
                 <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">

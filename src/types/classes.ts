@@ -537,6 +537,8 @@ export const PLAYER_CLASSES: PlayerClass[] = [
   }
 ]
 
+export const CLASS_DEFINITIONS = PLAYER_CLASSES
+
 export const getClassById = (classId: string): PlayerClass | null => {
   return PLAYER_CLASSES.find(cls => cls.id === classId) || null
 }

@@ -23,6 +23,7 @@ import {
   canSurviveLethalDamage,
   initializeBattleState
 } from './classSystem'
+import { CLASS_DEFINITIONS } from '../types/classes'
 
 export const createSoloBattle = async (
   userId: string
@@ -94,11 +95,11 @@ export const simulateSoloBattle = async (
       : getClassStartingStats('warrior') // Default to warrior if no class selected
     
     const levelBonuses = {
-      attack: user.level * 2.0,
-      defense: user.level * 1.0,
-      health: user.level * 15,
-      speed: user.level * 0.7,
-      critRate: user.level * 0.002,
+      attack: user.level * 1.5,
+      defense: user.level * 0.8,
+      health: user.level * 12,
+      speed: user.level * 0.6,
+      critRate: user.level * 0.001,
       critDamage: 0
     }
     
@@ -186,6 +187,11 @@ export const simulateSoloBattle = async (
     // Initialize battle state for class passives
     let battleState = initializeBattleState(user.playerClass)
     
+    // Initialize burst ability tracking
+    let burstCooldown = 0
+    const userClass = CLASS_DEFINITIONS.find((c: any) => c.id === user.playerClass)
+    const burstAbility = userClass?.burst
+    
     logs.push(`🔥 ${user.displayName} encounters a ${monster.name}!`)
     logs.push(`⚔️ Battle begins! Player (${playerHealth} HP) vs ${monster.name} (${monsterHealth} HP)`)
     
@@ -214,8 +220,39 @@ export const simulateSoloBattle = async (
         battleState
       )
       
-      const playerDamage = playerPassiveResult.finalDamage
+      let playerDamage = playerPassiveResult.finalDamage
       battleState = playerPassiveResult.updatedState
+      
+      // Check for burst ability trigger
+      let burstTriggered = false
+      if (burstAbility && burstCooldown <= 0 && Math.random() < burstAbility.triggerChance) {
+        burstTriggered = true
+        burstCooldown = burstAbility.cooldown
+        
+        // Apply burst effect
+        switch (burstAbility.effect.type) {
+          case 'massive_damage':
+            playerDamage = Math.floor(playerDamage * (burstAbility.effect.value / 100))
+            break
+          case 'heal_full':
+            playerHealth = Math.min(maxPlayerHealth, playerHealth + Math.floor(maxPlayerHealth * (burstAbility.effect.value / 100)))
+            break
+          case 'special_attack':
+            playerDamage = Math.floor(playerStats.attack * (burstAbility.effect.value / 100))
+            break
+          case 'stat_boost':
+            // Temporarily boost damage for this attack
+            playerDamage = Math.floor(playerDamage * (1 + burstAbility.effect.value / 100))
+            break
+        }
+        
+        logs.push(`💥 ${burstAbility.name}! ${user.displayName} unleashes their ultimate ability!`)
+      }
+      
+      // Decrease burst cooldown
+      if (burstCooldown > 0) {
+        burstCooldown--
+      }
       
       monsterHealth = Math.max(0, monsterHealth - playerDamage)
       logs.push(`⚔️ Round ${round}: Player ${playerIsCrit ? 'critically ' : ''}deals ${playerDamage} damage to ${monster.name}${playerIsCrit ? ' (CRITICAL!)' : ''}`)
@@ -238,9 +275,9 @@ export const simulateSoloBattle = async (
       }
       
       // Monster attacks back automatically
-      const monsterIsCrit = Math.random() < (monster.stats.critRate || 0.05)
+      const monsterIsCrit = Math.random() < (monster.stats.critRate || 0.15)
       const monsterBaseDamage = Math.floor(monster.stats.attack * (1.1 + Math.random() * 0.4))
-      const baseMonstDamage = monsterIsCrit ? Math.floor(monsterBaseDamage * 1.5) : monsterBaseDamage
+      const baseMonstDamage = monsterIsCrit ? Math.floor(monsterBaseDamage * 2.0) : monsterBaseDamage
       
       // Apply defensive class passives
       const monsterPassiveResult = processClassPassives(

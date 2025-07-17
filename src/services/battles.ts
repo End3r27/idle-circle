@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { Battle, Circle, Player, BattleReward, Item } from '../types'
+import { CLASS_DEFINITIONS } from '../types/classes'
 
 export const createCircleBattle = async (
   circleId: string,
