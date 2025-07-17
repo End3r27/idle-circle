@@ -103,13 +103,17 @@ export default function SoloBattles() {
     try {
       const result = await createSoloBattle(user.id)
       if (result.success && result.battleId) {
-        // Find the new battle and show it
+        // Reload battles to get the new battle
         await loadBattles()
-        const newBattle = battles.find(b => b.id === result.battleId)
+        // Get the updated battles list and find the new battle
+        const battleHistory = await getSoloBattleHistory(user.id, 20)
+        const newBattle = battleHistory.find(b => b.id === result.battleId)
         if (newBattle) {
           setActiveBattle(newBattle)
           setShowBattleScreen(true)
         }
+      } else {
+        console.error('Failed to create battle:', result.error)
       }
     } catch (error) {
       console.error('Error creating manual battle:', error)

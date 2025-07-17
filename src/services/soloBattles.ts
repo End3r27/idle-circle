@@ -62,17 +62,6 @@ export const simulateSoloBattle = async (
   try {
     const battleRef = doc(db, 'battles', battleId)
     
-    // Get player loadout for stats calculation
-    let playerLoadout = null
-    try {
-      // Try to get loadout from any circle the user is in
-      if (user.circles.length > 0) {
-        playerLoadout = await getPlayerLoadout(user.id, user.circles[0])
-      }
-    } catch (error) {
-      console.log('No loadout found, using base stats')
-    }
-    
     // Calculate player stats
     const baseStats = {
       attack: 10 + user.level * 2,
@@ -83,17 +72,57 @@ export const simulateSoloBattle = async (
       critDamage: 1.5
     }
     
-    // Add loadout bonuses if available
+    // Try to get equipment stats from localStorage (for solo battles)
     let playerStats = { ...baseStats }
-    if (playerLoadout) {
-      const loadoutStats = playerLoadout.stats
-      playerStats = {
-        attack: baseStats.attack + (loadoutStats.attack || 0),
-        defense: baseStats.defense + (loadoutStats.defense || 0),
-        health: baseStats.health + (loadoutStats.health || 0),
-        speed: baseStats.speed + (loadoutStats.speed || 0),
-        critRate: Math.min(0.5, baseStats.critRate + (loadoutStats.critRate || 0)),
-        critDamage: baseStats.critDamage + (loadoutStats.critDamage || 0)
+    try {
+      // Check if running in browser environment
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const savedLoadout = localStorage.getItem(`loadout_${user.id}`)
+        if (savedLoadout) {
+          const loadout = JSON.parse(savedLoadout)
+          const equipmentStats = Object.values(loadout).reduce((total: any, item: any) => {
+            if (!item) return total
+            return {
+              attack: total.attack + (item.stats?.attack || 0),
+              defense: total.defense + (item.stats?.defense || 0),
+              health: total.health + (item.stats?.health || 0),
+              speed: total.speed + (item.stats?.speed || 0),
+              critRate: total.critRate + (item.stats?.critRate || 0),
+              critDamage: total.critDamage + (item.stats?.critDamage || 0)
+            }
+          }, { attack: 0, defense: 0, health: 0, speed: 0, critRate: 0, critDamage: 0 })
+          
+          playerStats = {
+            attack: baseStats.attack + equipmentStats.attack,
+            defense: baseStats.defense + equipmentStats.defense,
+            health: baseStats.health + equipmentStats.health,
+            speed: baseStats.speed + equipmentStats.speed,
+            critRate: Math.min(0.5, baseStats.critRate + equipmentStats.critRate),
+            critDamage: baseStats.critDamage + equipmentStats.critDamage
+          }
+        }
+      }
+    } catch (error) {
+      console.log('No equipment loadout found, using base stats')
+    }
+    
+    // Fallback: Try to get loadout from any circle the user is in
+    if (playerStats.attack === baseStats.attack && user.circles.length > 0) {
+      try {
+        const playerLoadout = await getPlayerLoadout(user.id, user.circles[0])
+        if (playerLoadout) {
+          const loadoutStats = playerLoadout.stats
+          playerStats = {
+            attack: baseStats.attack + (loadoutStats.attack || 0),
+            defense: baseStats.defense + (loadoutStats.defense || 0),
+            health: baseStats.health + (loadoutStats.health || 0),
+            speed: baseStats.speed + (loadoutStats.speed || 0),
+            critRate: Math.min(0.5, baseStats.critRate + (loadoutStats.critRate || 0)),
+            critDamage: baseStats.critDamage + (loadoutStats.critDamage || 0)
+          }
+        }
+      } catch (error) {
+        console.log('No circle loadout found, using base stats')
       }
     }
     
@@ -292,11 +321,11 @@ const awardSoloRewards = async (userId: string, reward: BattleReward): Promise<v
       })
     }
     
-    // Add items to inventory (simplified - you might want to implement proper inventory system)
+    // Add items to inventory
     for (const item of reward.items) {
       await addDoc(collection(db, 'inventory'), {
         userId,
-        item,
+        ...item,
         quantity: 1,
         acquiredAt: new Date()
       })

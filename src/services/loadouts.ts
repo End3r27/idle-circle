@@ -108,10 +108,21 @@ export const getPlayerInventory = async (userId: string): Promise<Item[]> => {
     )
     
     const snapshot = await getDocs(inventoryQuery)
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Item[]
+    return snapshot.docs.map(doc => {
+      const data = doc.data()
+      // Handle both old format (item nested) and new format (item properties at root)
+      if (data.item) {
+        return {
+          id: doc.id,
+          ...data.item
+        } as Item
+      } else {
+        return {
+          id: doc.id,
+          ...data
+        } as Item
+      }
+    })
   } catch (error) {
     console.error('Error fetching inventory:', error)
     return []
