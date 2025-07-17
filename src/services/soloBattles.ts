@@ -19,6 +19,8 @@ export const createSoloBattle = async (
   userId: string
 ): Promise<{ success: boolean; battleId?: string; error?: string }> => {
   try {
+    console.log('Creating solo battle for user:', userId)
+    
     // Get user data
     const userDoc = await getDoc(doc(db, 'users', userId))
     if (!userDoc.exists()) {
@@ -26,9 +28,21 @@ export const createSoloBattle = async (
     }
     
     const user = userDoc.data() as User
+    console.log('User data:', user)
+    
+    // Ensure user has required fields
+    if (!user.level) user.level = 1
+    if (!user.experience) user.experience = 0
+    if (!user.circles) user.circles = []
     
     // Generate monster based on user level
     const monster = generateMonster(user.level, 1)
+    console.log('Generated monster:', monster)
+    
+    // Validate monster has required fields
+    if (!monster.name || !monster.stats) {
+      return { success: false, error: 'Failed to generate monster data' }
+    }
     
     const battleData: Omit<Battle, 'id'> = {
       type: 'solo',
@@ -42,6 +56,8 @@ export const createSoloBattle = async (
       startedAt: new Date(),
       status: 'pending'
     }
+    
+    console.log('Battle data to save:', battleData)
     
     const docRef = await addDoc(collection(db, 'battles'), battleData)
     
@@ -77,7 +93,7 @@ export const simulateSoloBattle = async (
     try {
       // Check if running in browser environment
       if (typeof window !== 'undefined' && window.localStorage) {
-        const savedLoadout = localStorage.getItem(`loadout_${user.id}`)
+        const savedLoadout = localStorage.getItem(`loadout_${userId}`)
         if (savedLoadout) {
           const loadout = JSON.parse(savedLoadout)
           
@@ -118,9 +134,10 @@ export const simulateSoloBattle = async (
     }
     
     // Fallback: Try to get loadout from any circle the user is in
-    if (playerStats.attack === baseStats.attack && user.circles.length > 0) {
+    if (playerStats.attack === baseStats.attack && user.circles && user.circles.length > 0) {
       try {
-        const playerLoadout = await getPlayerLoadout(user.id, user.circles[0])
+        // Use userId (the function parameter) instead of user.id which might be undefined
+        const playerLoadout = await getPlayerLoadout(userId, user.circles[0])
         if (playerLoadout) {
           const loadoutStats = playerLoadout.stats
           playerStats = {
@@ -198,10 +215,16 @@ export const simulateSoloBattle = async (
     }
     
     // Generate rewards
-    const rewards = generateSoloBattleRewards(user.id, winner, monster)
+    const rewards = generateSoloBattleRewards(userId, winner, monster)
+    
+    // Validate results before updating
+    if (!winner || !rewards || !logs) {
+      console.error('Invalid battle results:', { winner, rewards, logs })
+      return
+    }
     
     // Update battle with results
-    await updateDoc(battleRef, {
+    const updateData = {
       result: {
         winner,
         rewards,
@@ -209,15 +232,18 @@ export const simulateSoloBattle = async (
       },
       completedAt: new Date(),
       status: 'completed'
-    })
+    }
+    
+    console.log('Updating battle with:', updateData)
+    await updateDoc(battleRef, updateData)
     
     // Update user last solo battle time
-    await updateDoc(doc(db, 'users', user.id), {
+    await updateDoc(doc(db, 'users', userId), {
       lastSoloBattleAt: new Date().toISOString()
     })
     
     // Award rewards to player
-    await awardSoloRewards(user.id, rewards[0])
+    await awardSoloRewards(userId, rewards[0])
     
   } catch (error) {
     console.error('Error simulating solo battle:', error)
@@ -351,19 +377,49 @@ export const getSoloBattleHistory = async (
   limitCount: number = 10
 ): Promise<Battle[]> => {
   try {
-    const battlesQuery = query(
-      collection(db, 'battles'),
-      where('type', '==', 'solo'),
-      where('participants', 'array-contains', userId),
-      orderBy('startedAt', 'desc'),
-      limit(limitCount)
-    )
+    console.log('Fetching solo battle history for user:', userId)
     
-    const snapshot = await getDocs(battlesQuery)
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Battle[]
+    // First try with the complex query
+    try {
+      const battlesQuery = query(
+        collection(db, 'battles'),
+        where('type', '==', 'solo'),
+        where('participants', 'array-contains', userId),
+        orderBy('startedAt', 'desc'),
+        limit(limitCount)
+      )
+      
+      const snapshot = await getDocs(battlesQuery)
+      const battles = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Battle[]
+      
+      console.log('Found solo battles:', battles.length)
+      return battles
+    } catch (indexError) {
+      console.log('Index not available, trying simpler query...')
+      
+      // Fallback to simpler query without orderBy
+      const battlesQuery = query(
+        collection(db, 'battles'),
+        where('type', '==', 'solo'),
+        where('participants', 'array-contains', userId),
+        limit(limitCount)
+      )
+      
+      const snapshot = await getDocs(battlesQuery)
+      const battles = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Battle[]
+      
+      // Sort manually
+      battles.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+      
+      console.log('Found solo battles (manual sort):', battles.length)
+      return battles
+    }
   } catch (error) {
     console.error('Error fetching solo battle history:', error)
     return []
