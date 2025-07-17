@@ -83,8 +83,8 @@ export const simulateBattle = async (
     const battle = battleDoc.data() as Battle
     
     // Get players for each team
-    const team1Players = players.filter(p => battle.teams.team1.includes(p.userId))
-    const team2Players = players.filter(p => battle.teams.team2.includes(p.userId))
+    const team1Players = players.filter(p => battle.teams?.team1.includes(p.userId))
+    const team2Players = players.filter(p => battle.teams?.team2.includes(p.userId))
     
     // Calculate team stats
     const team1Stats = calculateTeamStats(team1Players)
@@ -127,7 +127,7 @@ export const simulateBattle = async (
     }
     
     // Generate rewards
-    const rewards = generateBattleRewards(battle.participants, winner, battle.teams)
+    const rewards = generateBattleRewards(battle.participants, winner, battle.teams || { team1: [], team2: [] })
     
     // Update battle with results
     await updateDoc(battleRef, {
@@ -141,9 +141,11 @@ export const simulateBattle = async (
     })
     
     // Update circle last battle time
-    await updateDoc(doc(db, 'circles', battle.circleId), {
-      lastBattleAt: new Date().toISOString()
-    })
+    if (battle.circleId) {
+      await updateDoc(doc(db, 'circles', battle.circleId), {
+        lastBattleAt: new Date().toISOString()
+      })
+    }
     
     // Award rewards to players
     await awardRewards(rewards)

@@ -121,7 +121,7 @@ export default function SoloBattles() {
     loadBattles() // Refresh battle history
   }
 
-  const canStartManualBattle = nextBattleTime === 'Ready!' || user?.level >= 5
+  const canStartManualBattle = nextBattleTime === 'Ready!' || (user?.level || 1) >= 5
 
   return (
     <div className="container mx-auto p-4 animate-fade-in">
@@ -160,7 +160,7 @@ export default function SoloBattles() {
               {manualBattleLoading ? 'Starting Battle...' : '⚔️ Fight Now'}
             </button>
             
-            {!canStartManualBattle && user?.level < 5 && (
+            {!canStartManualBattle && (user?.level || 1) < 5 && (
               <div className="text-xs text-gray-500 mt-2">
                 Manual battles unlock at level 5
               </div>
@@ -226,7 +226,7 @@ export default function SoloBattles() {
             <div className="flex justify-between">
               <span className="text-gray-400">Next Level</span>
               <span className="text-purple-400 font-semibold">
-                {(user?.level + 1) * 100 - (user?.experience || 0)} XP
+                {((user?.level || 1) + 1) * 100 - (user?.experience || 0)} XP
               </span>
             </div>
           </div>

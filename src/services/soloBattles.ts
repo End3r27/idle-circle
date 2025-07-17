@@ -11,7 +11,7 @@ import {
   updateDoc
 } from 'firebase/firestore'
 import { db } from './firebase'
-import { Battle, User, Player, BattleReward, Item } from '../types'
+import { Battle, User, BattleReward, Item } from '../types'
 import { generateMonster } from './monsters'
 import { getPlayerLoadout } from './loadouts'
 
@@ -209,7 +209,7 @@ const generateSoloBattleRewards = (
     
     // Item drop chance
     if (Math.random() < monster.rewards.itemDropChance) {
-      reward.items.push(generateRandomBattleItem(monster.level))
+      reward.items.push(generateRandomBattleItem(monster.level, monster.name))
     }
   } else if (winner === 'draw') {
     // Reduced rewards for draw
@@ -224,7 +224,7 @@ const generateSoloBattleRewards = (
   return [reward]
 }
 
-const generateRandomBattleItem = (monsterLevel: number): Item => {
+const generateRandomBattleItem = (monsterLevel: number, monsterName: string): Item => {
   const types: Item['type'][] = ['weapon', 'armor', 'accessory', 'consumable']
   const rarities: Item['rarity'][] = ['common', 'rare', 'epic', 'legendary']
   
@@ -264,11 +264,11 @@ const generateRandomBattleItem = (monsterLevel: number): Item => {
   
   return {
     id: `battle_item_${Date.now()}_${Math.random()}`,
-    name: `${rarity} ${type} of the ${monster.name}`,
+    name: `${rarity} ${type} of the ${monsterName}`,
     type,
     rarity,
     stats: baseStats,
-    description: `A ${rarity} ${type} obtained from defeating a ${monster.name}`,
+    description: `A ${rarity} ${type} obtained from defeating a ${monsterName}`,
     icon: `icon_${type}`,
     tradeable: rarity !== 'legendary',
     forgeable: true

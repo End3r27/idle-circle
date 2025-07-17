@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Battle, User, Monster } from '../types'
+import { Battle, User } from '../types'
 import { getMonsterRarityColor, getMonsterRarityName } from '../services/monsters'
 
 interface AutoBattleScreenProps {

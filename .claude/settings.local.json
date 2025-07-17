@@ -15,7 +15,9 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(git remote set-url:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(npx tsc:*)",
+      "Bash(/dev/null)"
     ],
     "deny": []
   }

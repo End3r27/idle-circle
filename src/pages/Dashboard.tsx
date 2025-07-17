@@ -179,7 +179,7 @@ export default function Dashboard() {
     }
   }
 
-  const handleBattleComplete = (result: Battle['result']) => {
+  const handleBattleComplete = () => {
     // Reload circles to update any changes
     loadCircles()
     // You could show a notification here about the battle results
