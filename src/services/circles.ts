@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { Circle, User, Player } from '../types'
+import { generateStarterGear } from './loadouts'
 
 export const createCircle = async (
   name: string, 
@@ -69,6 +70,9 @@ export const createCircle = async (
       userId: ownerId,
       ...playerData
     })
+
+    // Generate starter equipment for the owner
+    await generateStarterGear(ownerId)
 
     return { success: true, circleId: docRef.id }
   } catch (error: any) {
@@ -136,6 +140,9 @@ export const joinCircle = async (
       userId,
       ...playerData
     })
+
+    // Generate starter equipment for the new member
+    await generateStarterGear(userId)
 
     return { success: true, circleId: circleDoc.id }
   } catch (error: any) {
