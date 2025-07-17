@@ -270,7 +270,7 @@ export default function SoloBattles() {
                       <span className="text-2xl">{battle.monster?.icon}</span>
                       <div>
                         <div className="font-semibold text-white">{battle.monster?.name}</div>
-                        <div className={`text-sm ${getMonsterRarityColor(battle.monster?.level || 1)}`}>
+                        <div className={`text-sm ${getMonsterRarityColor(getMonsterRarityName(battle.monster?.level || 1).toLowerCase())}`}>
                           Level {battle.monster?.level} • {getMonsterRarityName(battle.monster?.level || 1)}
                         </div>
                       </div>

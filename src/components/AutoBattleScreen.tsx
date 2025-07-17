@@ -143,7 +143,7 @@ export default function AutoBattleScreen({
               </div>
               <div className="space-y-2">
                 <h3 className="text-xl font-bold text-white">{monster.name}</h3>
-                <div className={`text-sm ${getMonsterRarityColor(monster.level)}`}>
+                <div className={`text-sm ${getMonsterRarityColor(getMonsterRarityName(monster.level).toLowerCase())}`}>
                   Level {monster.level} • {getMonsterRarityName(monster.level)}
                 </div>
                 
