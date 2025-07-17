@@ -24,6 +24,7 @@ import {
   initializeBattleState
 } from './classSystem'
 import { CLASS_DEFINITIONS } from '../types/classes'
+import { getLevelFromExperience } from './experience'
 
 export const createSoloBattle = async (
   userId: string
@@ -45,15 +46,40 @@ export const createSoloBattle = async (
     if (!user.experience) user.experience = 0
     if (!user.circles) user.circles = []
     
-    // Generate monster based on user level
-    const monster = generateMonster(user.level, 1)
+    // We'll generate the monster after calculating player stats
+    
+    // Calculate player stats first
+    const classStartingStats = user.playerClass 
+      ? getClassStartingStats(user.playerClass) 
+      : getClassStartingStats('warrior')
+    
+    const levelBonuses = {
+      attack: user.level * 1.5,
+      defense: user.level * 0.8,
+      health: user.level * 12,
+      speed: user.level * 0.6,
+      critRate: user.level * 0.001,
+      critDamage: 0
+    }
+    
+    const baseStats = {
+      attack: classStartingStats.attack + levelBonuses.attack,
+      defense: classStartingStats.defense + levelBonuses.defense,
+      health: classStartingStats.health + levelBonuses.health,
+      speed: classStartingStats.speed + levelBonuses.speed,
+      critRate: classStartingStats.critRate + levelBonuses.critRate,
+      critDamage: classStartingStats.critDamage + levelBonuses.critDamage
+    }
+    
+    // Generate monster based on user level and stats
+    const monster = generateMonster(user.level, 1, baseStats)
     console.log('Generated monster:', monster)
     
     // Validate monster has required fields
     if (!monster.name || !monster.stats) {
       return { success: false, error: 'Failed to generate monster data' }
     }
-    
+
     const battleData: Omit<Battle, 'id'> = {
       type: 'solo',
       participants: [userId],
@@ -92,7 +118,7 @@ export const simulateSoloBattle = async (
     // Calculate player stats with class system
     const classStartingStats = user.playerClass 
       ? getClassStartingStats(user.playerClass) 
-      : getClassStartingStats('warrior') // Default to warrior if no class selected
+      : getClassStartingStats('warrior')
     
     const levelBonuses = {
       attack: user.level * 1.5,
@@ -232,17 +258,17 @@ export const simulateSoloBattle = async (
         // Apply burst effect
         switch (burstAbility.effect.type) {
           case 'massive_damage':
-            playerDamage = Math.floor(playerDamage * (burstAbility.effect.value / 100))
+            playerDamage = Math.floor(playerDamage * burstAbility.effect.value)
             break
           case 'heal_full':
-            playerHealth = Math.min(maxPlayerHealth, playerHealth + Math.floor(maxPlayerHealth * (burstAbility.effect.value / 100)))
+            playerHealth = Math.min(maxPlayerHealth, playerHealth + Math.floor(maxPlayerHealth * burstAbility.effect.value))
             break
           case 'special_attack':
-            playerDamage = Math.floor(playerStats.attack * (burstAbility.effect.value / 100))
+            playerDamage = Math.floor(playerStats.attack * burstAbility.effect.value)
             break
           case 'stat_boost':
             // Temporarily boost damage for this attack
-            playerDamage = Math.floor(playerDamage * (1 + burstAbility.effect.value / 100))
+            playerDamage = Math.floor(playerDamage * (1 + burstAbility.effect.value))
             break
         }
         
@@ -481,7 +507,7 @@ const awardSoloRewards = async (userId: string, reward: BattleReward): Promise<v
     if (userDoc.exists()) {
       const userData = userDoc.data() as User
       const newExperience = userData.experience + reward.experience
-      const newLevel = Math.floor(newExperience / 100) + 1 // Simple leveling formula
+      const newLevel = getLevelFromExperience(newExperience)
       
       await updateDoc(userRef, {
         experience: newExperience,

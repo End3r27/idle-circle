@@ -5,6 +5,7 @@ import { Battle } from '../types'
 import AutoBattleScreen from '../components/AutoBattleScreen'
 import { getMonsterRarityColor, getMonsterRarityName } from '../services/monsters'
 import { formatDateTime } from '../utils/dateUtils'
+import { getExperienceToNextLevel, getLevelProgress } from '../services/experience'
 
 export default function SoloBattles() {
   const { user } = useAuth()
@@ -231,8 +232,16 @@ export default function SoloBattles() {
             <div className="flex justify-between">
               <span className="text-gray-400">Next Level</span>
               <span className="text-purple-400 font-semibold">
-                {((user?.level || 1) + 1) * 100 - (user?.experience || 0)} XP
+                {getExperienceToNextLevel(user?.experience || 0, user?.level || 1)} XP
               </span>
+            </div>
+            <div className="mt-2">
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${getLevelProgress(user?.experience || 0, user?.level || 1)}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>

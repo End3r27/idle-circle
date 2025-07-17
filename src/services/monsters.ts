@@ -981,7 +981,7 @@ const MONSTER_TEMPLATES: MonsterTemplate[] = [
   }
 ]
 
-export const generateMonster = (playerLevel: number, playerCount: number = 1): Monster => {
+export const generateMonster = (playerLevel: number, playerCount: number = 1, playerStats?: any): Monster => {
   // Filter monsters suitable for player level (±5 levels)
   const suitableTemplates = MONSTER_TEMPLATES.filter(template => 
     playerLevel >= template.levelRange[0] - 5 && 
@@ -1000,12 +1000,20 @@ export const generateMonster = (playerLevel: number, playerCount: number = 1): M
   const levelMultiplier = 1 + (monsterLevel - 1) * 0.25
   const groupMultiplier = Math.sqrt(playerCount) * 0.9
   
+  // Additional scaling based on player stats to keep monsters challenging
+  let playerStatMultiplier = 1
+  if (playerStats) {
+    // Scale monster based on player's total combat power
+    const playerCombatPower = (playerStats.attack + playerStats.defense + playerStats.health / 10) / 100
+    playerStatMultiplier = Math.max(0.8, Math.min(2.0, 0.9 + playerCombatPower * 0.3))
+  }
+  
   const scaledStats: PlayerStats = {
-    attack: Math.floor(template.baseStats.attack * levelMultiplier * groupMultiplier),
-    defense: Math.floor(template.baseStats.defense * levelMultiplier * groupMultiplier),
-    health: Math.floor(template.baseStats.health * levelMultiplier * groupMultiplier),
-    speed: Math.floor(template.baseStats.speed * levelMultiplier),
-    critRate: Math.min(0.3, template.baseStats.critRate * levelMultiplier),
+    attack: Math.floor(template.baseStats.attack * levelMultiplier * groupMultiplier * playerStatMultiplier),
+    defense: Math.floor(template.baseStats.defense * levelMultiplier * groupMultiplier * playerStatMultiplier),
+    health: Math.floor(template.baseStats.health * levelMultiplier * groupMultiplier * playerStatMultiplier),
+    speed: Math.floor(template.baseStats.speed * levelMultiplier * playerStatMultiplier),
+    critRate: Math.min(0.3, template.baseStats.critRate * levelMultiplier * playerStatMultiplier),
     critDamage: template.baseStats.critDamage
   }
   
@@ -1027,10 +1035,10 @@ export const generateMonster = (playerLevel: number, playerCount: number = 1): M
     element: template.element,
     rewards: {
       experienceRange: [
-        Math.floor(40 + monsterLevel * 8),
-        Math.floor(60 + monsterLevel * 12)
+        Math.floor(15 + monsterLevel * 3),
+        Math.floor(25 + monsterLevel * 5)
       ],
-      itemDropChance: Math.min(0.4, 0.15 + monsterLevel * 0.005),
+      itemDropChance: Math.min(0.25, 0.05 + monsterLevel * 0.003),
       currencyRange: [
         Math.floor(10 + monsterLevel * 2),
         Math.floor(25 + monsterLevel * 4)

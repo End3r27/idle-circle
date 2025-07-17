@@ -272,14 +272,14 @@ const generateBattleRewards = (
     const isWinner = (winner === 'team1' && teams.team1.includes(userId)) ||
                     (winner === 'team2' && teams.team2.includes(userId))
     
-    const baseExp = 50
-    const winBonus = isWinner ? 25 : 0
+    const baseExp = 20
+    const winBonus = isWinner ? 10 : 0
     const experience = baseExp + winBonus
     
     rewards.push({
       userId,
       experience,
-      items: Math.random() > 0.7 ? [generateRandomItem()] : [],
+      items: Math.random() > 0.85 ? [generateRandomItem()] : [],
       currency: Math.floor(Math.random() * 20) + 10
     })
   })
@@ -296,15 +296,15 @@ const generateRandomItem = (): Item => {
   
   const rarityMultiplier = {
     common: 1,
-    rare: 1.5,
-    epic: 2,
-    legendary: 3
+    rare: 1.3,
+    epic: 1.6,
+    legendary: 2.2
   }[rarity]
   
   const baseStats = {
-    attack: Math.floor(Math.random() * 10 + 5) * rarityMultiplier,
-    defense: Math.floor(Math.random() * 10 + 5) * rarityMultiplier,
-    health: Math.floor(Math.random() * 50 + 25) * rarityMultiplier
+    attack: Math.floor(Math.random() * 4 + 2) * rarityMultiplier,
+    defense: Math.floor(Math.random() * 4 + 2) * rarityMultiplier,
+    health: Math.floor(Math.random() * 15 + 10) * rarityMultiplier
   }
   
   return {

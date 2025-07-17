@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Battle, User } from '../types'
 import { getMonsterRarityColor, getMonsterRarityName } from '../services/monsters'
 import { CLASS_DEFINITIONS } from '../types/classes'
+import { getClassStartingStats } from '../services/classSystem'
 
 interface AutoBattleScreenProps {
   battle: Battle
@@ -41,7 +42,14 @@ export default function AutoBattleScreen({
   }, [isOpen, battlePhase])
 
   const playBattleLogs = async () => {
-    const totalPlayerHealth = user.level * 20 + 80 // Base health calculation
+    // Calculate player health using the same formula as battle system
+    const classStartingStats = user.playerClass 
+      ? getClassStartingStats(user.playerClass) 
+      : getClassStartingStats('warrior')
+    const levelBonuses = {
+      health: user.level * 12,
+    }
+    const totalPlayerHealth = classStartingStats.health + levelBonuses.health
     const totalMonsterHealth = monster.stats.health
     let currentPlayerHp = totalPlayerHealth
     let currentMonsterHp = totalMonsterHealth
