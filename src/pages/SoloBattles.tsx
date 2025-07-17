@@ -4,6 +4,7 @@ import { getSoloBattleHistory, createSoloBattle, scheduleSoloBattle } from '../s
 import { Battle } from '../types'
 import AutoBattleScreen from '../components/AutoBattleScreen'
 import { getMonsterRarityColor, getMonsterRarityName } from '../services/monsters'
+import { formatDateTime } from '../utils/dateUtils'
 
 export default function SoloBattles() {
   const { user } = useAuth()
@@ -275,7 +276,7 @@ export default function SoloBattles() {
                       </div>
                     </div>
                     <div className="text-xs text-gray-400">
-                      {new Date(battle.startedAt).toLocaleDateString()} at {new Date(battle.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {formatDateTime(battle.startedAt)}
                     </div>
                   </div>
                   

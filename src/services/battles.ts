@@ -105,40 +105,113 @@ export const simulateBattle = async (
     console.log('Team 1 stats:', team1Stats)
     console.log('Team 2 stats:', team2Stats)
     
-    // Simulate battle rounds
+    // Simulate battle rounds with individual player targeting
     const logs: string[] = []
-    let team1Health = team1Stats.health
-    let team2Health = team2Stats.health
     
-    logs.push(`🔥 Battle begins! Team 1 (${team1Stats.health} HP) vs Team 2 (${team2Stats.health} HP)`)
+    // Create individual player health tracking
+    const team1PlayerHealth = team1Players.map(p => ({
+      player: p,
+      health: p.stats.health,
+      maxHealth: p.stats.health
+    }))
+    
+    const team2PlayerHealth = team2Players.map(p => ({
+      player: p,
+      health: p.stats.health,
+      maxHealth: p.stats.health
+    }))
+    
+    logs.push(`🔥 Battle begins! Team 1 (${team1Players.length} players) vs Team 2 (${team2Players.length} players)`)
+    logs.push(`👥 Team 1: ${team1Players.map(p => p.userId).join(', ')}`)
+    logs.push(`👥 Team 2: ${team2Players.map(p => p.userId).join(', ')}`)
     
     let round = 1
-    while (team1Health > 0 && team2Health > 0 && round <= 10) {
-      // Team 1 attacks Team 2
-      const damage1 = Math.floor(team1Stats.attack * (0.8 + Math.random() * 0.4))
-      team2Health -= damage1
-      logs.push(`⚔️ Round ${round}: Team 1 deals ${damage1} damage to Team 2`)
+    while (team1PlayerHealth.some(p => p.health > 0) && team2PlayerHealth.some(p => p.health > 0) && round <= 15) {
       
-      if (team2Health <= 0) break
+      // Team 1 attacks Team 2 (all team 1 players attack same target)
+      const aliveTeam1 = team1PlayerHealth.filter(p => p.health > 0)
+      const aliveTeam2 = team2PlayerHealth.filter(p => p.health > 0)
       
-      // Team 2 attacks Team 1
-      const damage2 = Math.floor(team2Stats.attack * (0.8 + Math.random() * 0.4))
-      team1Health -= damage2
-      logs.push(`⚔️ Round ${round}: Team 2 deals ${damage2} damage to Team 1`)
+      if (aliveTeam1.length > 0 && aliveTeam2.length > 0) {
+        // Pick random target from Team 2
+        const target = aliveTeam2[Math.floor(Math.random() * aliveTeam2.length)]
+        let totalDamage = 0
+        
+        // Each alive Team 1 player attacks the same target
+        for (const attacker of aliveTeam1) {
+          const isCrit = Math.random() < 0.1
+          const baseDamage = Math.floor(attacker.player.stats.attack * (0.9 + Math.random() * 0.3))
+          const damage = isCrit ? Math.floor(baseDamage * 1.5) : baseDamage
+          totalDamage += damage
+        }
+        
+        target.health = Math.max(0, target.health - totalDamage)
+        logs.push(`⚔️ Round ${round}: Team 1 focuses fire on ${target.player.userId}, dealing ${totalDamage} total damage`)
+        
+        if (target.health <= 0) {
+          logs.push(`💀 ${target.player.userId} from Team 2 is defeated!`)
+        }
+      }
+      
+      // Check if Team 2 is eliminated
+      if (!team2PlayerHealth.some(p => p.health > 0)) break
+      
+      // Team 2 attacks Team 1 (all team 2 players attack same target)
+      const stillAliveTeam1 = team1PlayerHealth.filter(p => p.health > 0)
+      const stillAliveTeam2 = team2PlayerHealth.filter(p => p.health > 0)
+      
+      if (stillAliveTeam2.length > 0 && stillAliveTeam1.length > 0) {
+        // Pick random target from Team 1
+        const target = stillAliveTeam1[Math.floor(Math.random() * stillAliveTeam1.length)]
+        let totalDamage = 0
+        
+        // Each alive Team 2 player attacks the same target
+        for (const attacker of stillAliveTeam2) {
+          const isCrit = Math.random() < 0.1
+          const baseDamage = Math.floor(attacker.player.stats.attack * (0.9 + Math.random() * 0.3))
+          const damage = isCrit ? Math.floor(baseDamage * 1.5) : baseDamage
+          totalDamage += damage
+        }
+        
+        target.health = Math.max(0, target.health - totalDamage)
+        logs.push(`🩸 Round ${round}: Team 2 focuses fire on ${target.player.userId}, dealing ${totalDamage} total damage`)
+        
+        if (target.health <= 0) {
+          logs.push(`💀 ${target.player.userId} from Team 1 is defeated!`)
+        }
+      }
+      
+      // Add battle status every 3 rounds
+      if (round % 3 === 0) {
+        const team1Alive = team1PlayerHealth.filter(p => p.health > 0).length
+        const team2Alive = team2PlayerHealth.filter(p => p.health > 0).length
+        logs.push(`📊 Round ${round}: Team 1 (${team1Alive} alive) vs Team 2 (${team2Alive} alive)`)
+      }
       
       round++
     }
     
-    // Determine winner
+    // Determine winner based on surviving players
     let winner: 'team1' | 'team2' | 'draw' = 'draw'
-    if (team1Health > team2Health) {
+    const team1Survivors = team1PlayerHealth.filter(p => p.health > 0)
+    const team2Survivors = team2PlayerHealth.filter(p => p.health > 0)
+    
+    if (team1Survivors.length > 0 && team2Survivors.length === 0) {
       winner = 'team1'
-      logs.push(`🏆 Team 1 wins with ${team1Health} HP remaining!`)
-    } else if (team2Health > team1Health) {
+      logs.push(`🏆 Team 1 wins with ${team1Survivors.length} survivor(s)!`)
+      logs.push(`🎉 Survivors: ${team1Survivors.map(p => p.player.userId).join(', ')}`)
+    } else if (team2Survivors.length > 0 && team1Survivors.length === 0) {
       winner = 'team2'
-      logs.push(`🏆 Team 2 wins with ${team2Health} HP remaining!`)
+      logs.push(`🏆 Team 2 wins with ${team2Survivors.length} survivor(s)!`)
+      logs.push(`🎉 Survivors: ${team2Survivors.map(p => p.player.userId).join(', ')}`)
+    } else if (team1Survivors.length > team2Survivors.length) {
+      winner = 'team1'
+      logs.push(`🏆 Team 1 wins by elimination! (${team1Survivors.length} vs ${team2Survivors.length} survivors)`)
+    } else if (team2Survivors.length > team1Survivors.length) {
+      winner = 'team2'
+      logs.push(`🏆 Team 2 wins by elimination! (${team2Survivors.length} vs ${team1Survivors.length} survivors)`)
     } else {
-      logs.push(`🤝 Battle ends in a draw!`)
+      logs.push(`🤝 Battle ends in a draw! Both teams have ${team1Survivors.length} survivors.`)
     }
     
     // Generate rewards

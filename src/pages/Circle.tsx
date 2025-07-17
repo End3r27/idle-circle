@@ -11,6 +11,7 @@ import { db } from '../services/firebase'
 import BattleHistory from '../components/BattleHistory'
 import ManualBattle from '../components/ManualBattle'
 import LoadoutManager from '../components/LoadoutManager'
+import { formatDate } from '../utils/dateUtils'
 
 export default function Circle() {
   const { id } = useParams<{ id: string }>()
@@ -231,7 +232,7 @@ export default function Circle() {
           <div className="space-y-2 text-sm">
             <div><strong>Invite Code:</strong> <span className="font-mono bg-gray-700 px-2 py-1 rounded">{circle.inviteCode}</span></div>
             <div><strong>Description:</strong> {circle.description || 'No description'}</div>
-            <div><strong>Created:</strong> {new Date(circle.createdAt).toLocaleDateString()}</div>
+            <div><strong>Created:</strong> {formatDate(circle.createdAt)}</div>
             <div><strong>Settings:</strong></div>
             <div className="ml-4 space-y-1">
               <div>• Forging: {circle.settings.allowForging ? 'Enabled' : 'Disabled'}</div>

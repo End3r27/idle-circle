@@ -9,6 +9,7 @@ import CreateCircleModal from '../components/CreateCircleModal'
 import JoinCircleModal from '../components/JoinCircleModal'
 import LoadoutManager from '../components/LoadoutManager'
 import AutoBattleScreen from '../components/AutoBattleScreen'
+import { getTimestamp, formatDateTime } from '../utils/dateUtils'
 
 export default function Dashboard() {
   const [circles, setCircles] = useState<Circle[]>([])
@@ -60,9 +61,9 @@ export default function Dashboard() {
     }
     
     // Sort by date and take the 5 most recent
-    const sortedBattles = allBattles.sort((a, b) => 
-      new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
-    ).slice(0, 5)
+    const sortedBattles = allBattles.sort((a, b) => {
+      return getTimestamp(b.startedAt) - getTimestamp(a.startedAt)
+    }).slice(0, 5)
     
     setRecentBattles(sortedBattles)
     setLoading(false)
@@ -308,7 +309,7 @@ export default function Dashboard() {
                           {circle?.name || 'Unknown Circle'}
                         </div>
                         <div className="text-xs text-gray-400">
-                          {new Date(battle.startedAt).toLocaleDateString()} at {new Date(battle.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatDateTime(battle.startedAt)}
                         </div>
                       </div>
                       <div className="text-right">

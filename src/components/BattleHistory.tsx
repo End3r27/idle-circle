@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getBattleHistory } from '../services/battles'
 import { Battle } from '../types'
+import { formatFullDateTime } from '../utils/dateUtils'
 
 interface BattleHistoryProps {
   circleId: string
@@ -32,10 +33,7 @@ export default function BattleHistory({ circleId }: BattleHistoryProps) {
     setLoading(false)
   }
 
-  const formatDate = (date: Date | any) => {
-    const d = date instanceof Date ? date : new Date(date)
-    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
-  }
+  // Remove this function since we're using the utility function now
 
   const getBattleStatusColor = (status: string) => {
     switch (status) {
@@ -92,7 +90,7 @@ export default function BattleHistory({ circleId }: BattleHistoryProps) {
               </div>
               
               <div className="text-sm text-gray-400 mb-2">
-                {formatDate(battle.startedAt)}
+                {formatFullDateTime(battle.startedAt)}
               </div>
               
               <div className="flex justify-between text-sm">
@@ -133,7 +131,7 @@ export default function BattleHistory({ circleId }: BattleHistoryProps) {
                   <strong>Status:</strong> {selectedBattle.status}
                 </div>
                 <div>
-                  <strong>Started:</strong> {formatDate(selectedBattle.startedAt)}
+                  <strong>Started:</strong> {formatFullDateTime(selectedBattle.startedAt)}
                 </div>
                 <div>
                   <strong>Winner:</strong> {selectedBattle.result.winner}
