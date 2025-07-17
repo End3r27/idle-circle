@@ -23,6 +23,26 @@ export interface ClassBuff {
   }
 }
 
+export interface ClassBurst {
+  id: string
+  name: string
+  description: string
+  triggerChance: number // 0.0 to 1.0
+  cooldown: number // turns
+  effect: {
+    type: 'massive_damage' | 'heal_full' | 'stat_boost' | 'special_attack' | 'defensive' | 'utility'
+    value: number
+    duration?: number // for temporary effects
+    visualEffect: string // CSS animation class or description
+  }
+  animation: {
+    name: string
+    color: string
+    particles: string
+    sound?: string
+  }
+}
+
 export interface PlayerClass {
   id: string
   name: string
@@ -31,6 +51,7 @@ export interface PlayerClass {
   color: string
   buffs: ClassBuff[]
   passives: ClassPassive[]
+  burst: ClassBurst
   startingStats: {
     attack: number
     defense: number
@@ -81,6 +102,25 @@ export const PLAYER_CLASSES: PlayerClass[] = [
         }
       }
     ],
+    burst: {
+      id: 'blade_storm',
+      name: 'Blade Storm',
+      description: 'Unleashes a devastating whirlwind of steel, dealing 500% weapon damage and gaining immunity for 2 turns',
+      triggerChance: 0.15,
+      cooldown: 8,
+      effect: {
+        type: 'massive_damage',
+        value: 5.0,
+        duration: 2,
+        visualEffect: 'spinning-blades-explosion'
+      },
+      animation: {
+        name: 'Whirling Blades',
+        color: '#ff4444',
+        particles: 'steel-sparks',
+        sound: 'metal-clash'
+      }
+    },
     startingStats: {
       attack: 15,
       defense: 18,
@@ -129,6 +169,25 @@ export const PLAYER_CLASSES: PlayerClass[] = [
         }
       }
     ],
+    burst: {
+      id: 'shadow_clone',
+      name: 'Shadow Clone Technique',
+      description: 'Creates 5 shadow clones that each attack for 200% damage, then vanishes into shadows',
+      triggerChance: 0.18,
+      cooldown: 6,
+      effect: {
+        type: 'special_attack',
+        value: 2.0,
+        duration: 1,
+        visualEffect: 'shadow-multiplication'
+      },
+      animation: {
+        name: 'Shadow Clones',
+        color: '#8b5cf6',
+        particles: 'dark-smoke',
+        sound: 'shadow-whisper'
+      }
+    },
     startingStats: {
       attack: 14,
       defense: 8,
@@ -177,6 +236,25 @@ export const PLAYER_CLASSES: PlayerClass[] = [
         }
       }
     ],
+    burst: {
+      id: 'arcane_meteor',
+      name: 'Arcane Meteor',
+      description: 'Summons a massive meteor from the void, dealing 800% magic damage and creating arcane explosions',
+      triggerChance: 0.12,
+      cooldown: 10,
+      effect: {
+        type: 'massive_damage',
+        value: 8.0,
+        duration: 1,
+        visualEffect: 'meteor-explosion'
+      },
+      animation: {
+        name: 'Cosmic Meteor',
+        color: '#3b82f6',
+        particles: 'arcane-energy',
+        sound: 'cosmic-explosion'
+      }
+    },
     startingStats: {
       attack: 20,
       defense: 6,
@@ -225,6 +303,25 @@ export const PLAYER_CLASSES: PlayerClass[] = [
         }
       }
     ],
+    burst: {
+      id: 'divine_intervention',
+      name: 'Divine Intervention',
+      description: 'Calls upon divine power to heal to full health, gain 300% defense, and deal holy damage for 3 turns',
+      triggerChance: 0.14,
+      cooldown: 12,
+      effect: {
+        type: 'heal_full',
+        value: 3.0,
+        duration: 3,
+        visualEffect: 'divine-light-explosion'
+      },
+      animation: {
+        name: 'Divine Light',
+        color: '#fbbf24',
+        particles: 'golden-rays',
+        sound: 'heavenly-choir'
+      }
+    },
     startingStats: {
       attack: 12,
       defense: 15,
@@ -276,6 +373,25 @@ export const PLAYER_CLASSES: PlayerClass[] = [
         }
       }
     ],
+    burst: {
+      id: 'natures_wrath',
+      name: 'Nature\'s Wrath',
+      description: 'Summons the fury of nature: vines entangle, lightning strikes, and beasts charge for 600% damage',
+      triggerChance: 0.16,
+      cooldown: 7,
+      effect: {
+        type: 'special_attack',
+        value: 6.0,
+        duration: 2,
+        visualEffect: 'nature-storm'
+      },
+      animation: {
+        name: 'Elemental Storm',
+        color: '#10b981',
+        particles: 'nature-elements',
+        sound: 'thunder-roar'
+      }
+    },
     startingStats: {
       attack: 13,
       defense: 12,
@@ -324,6 +440,25 @@ export const PLAYER_CLASSES: PlayerClass[] = [
         }
       }
     ],
+    burst: {
+      id: 'blood_frenzy',
+      name: 'Blood Frenzy',
+      description: 'Enters a primal rage, attacking 10 times with increasing damage (100% to 1000%), ignoring all defense',
+      triggerChance: 0.20,
+      cooldown: 5,
+      effect: {
+        type: 'special_attack',
+        value: 10.0,
+        duration: 1,
+        visualEffect: 'blood-explosion'
+      },
+      animation: {
+        name: 'Primal Rage',
+        color: '#dc2626',
+        particles: 'blood-splatter',
+        sound: 'berserker-roar'
+      }
+    },
     startingStats: {
       attack: 18,
       defense: 6,
@@ -372,6 +507,25 @@ export const PLAYER_CLASSES: PlayerClass[] = [
         }
       }
     ],
+    burst: {
+      id: 'thousand_fists',
+      name: 'Thousand Fists of Enlightenment',
+      description: 'Achieves perfect harmony, unleashing 1000 strikes in an instant, each dealing 50% damage with perfect accuracy',
+      triggerChance: 0.10,
+      cooldown: 15,
+      effect: {
+        type: 'special_attack',
+        value: 50.0,
+        duration: 1,
+        visualEffect: 'golden-fist-storm'
+      },
+      animation: {
+        name: 'Enlightened Fury',
+        color: '#6366f1',
+        particles: 'golden-energy',
+        sound: 'meditation-bell'
+      }
+    },
     startingStats: {
       attack: 11,
       defense: 11,

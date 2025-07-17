@@ -72,6 +72,18 @@ export interface Item {
   forgeable: boolean
 }
 
+export interface MonsterAbility {
+  id: string
+  name: string
+  description: string
+  type: 'passive' | 'active' | 'trigger'
+  effect: {
+    type: 'damage_boost' | 'defense_boost' | 'heal' | 'status_effect' | 'special'
+    value: number
+    condition?: 'on_attack' | 'on_defend' | 'on_low_health' | 'on_crit' | 'always' | 'battle_start'
+  }
+}
+
 export interface Monster {
   id: string
   name: string
@@ -79,6 +91,9 @@ export interface Monster {
   stats: PlayerStats
   icon: string
   description: string
+  abilities?: MonsterAbility[]
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary' | 'mythic'
+  element?: 'fire' | 'water' | 'earth' | 'air' | 'dark' | 'light' | 'poison' | 'ice' | 'lightning'
   rewards: {
     experienceRange: [number, number]
     itemDropChance: number
