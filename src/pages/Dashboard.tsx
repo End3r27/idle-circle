@@ -9,6 +9,7 @@ import CreateCircleModal from '../components/CreateCircleModal'
 import JoinCircleModal from '../components/JoinCircleModal'
 import LoadoutManager from '../components/LoadoutManager'
 import AutoBattleScreen from '../components/AutoBattleScreen'
+import ClassDisplay from '../components/ClassDisplay'
 import { getTimestamp, formatDateTime } from '../utils/dateUtils'
 
 export default function Dashboard() {
@@ -347,6 +348,16 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Circles</span>
               <span className="text-purple-400 font-semibold">{circles.length}</span>
+            </div>
+            
+            {/* Class Display */}
+            <div className="pt-2 border-t border-gray-700">
+              <div className="text-gray-400 text-sm mb-2">Class</div>
+              {user?.playerClass ? (
+                <ClassDisplay classId={user.playerClass} />
+              ) : (
+                <span className="text-gray-500">No class selected</span>
+              )}
             </div>
           </div>
           

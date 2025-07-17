@@ -14,6 +14,16 @@ import { db } from './firebase'
 import { Battle, User, BattleReward, Item } from '../types'
 import { generateMonster } from './monsters'
 import { getPlayerLoadout } from './loadouts'
+import { 
+  applyClassBuffs, 
+  getClassStartingStats, 
+  processClassPassives, 
+  shouldForceFirstAttackCrit,
+  getExperienceMultiplier,
+  canSurviveLethalDamage,
+  initializeBattleState,
+  ClassBattleState
+} from './classSystem'
 
 export const createSoloBattle = async (
   userId: string
@@ -79,18 +89,31 @@ export const simulateSoloBattle = async (
   try {
     const battleRef = doc(db, 'battles', battleId)
     
-    // Calculate player stats with better scaling
-    const baseStats = {
-      attack: 12 + user.level * 2.5,
-      defense: 8 + user.level * 1.2,
-      health: 80 + user.level * 18,
-      speed: 8 + user.level * 0.8,
-      critRate: 0.08 + user.level * 0.003,
-      critDamage: 1.6
+    // Calculate player stats with class system
+    const classStartingStats = user.playerClass 
+      ? getClassStartingStats(user.playerClass) 
+      : getClassStartingStats('warrior') // Default to warrior if no class selected
+    
+    const levelBonuses = {
+      attack: user.level * 2.5,
+      defense: user.level * 1.2,
+      health: user.level * 18,
+      speed: user.level * 0.8,
+      critRate: user.level * 0.003,
+      critDamage: 0
     }
     
-    // Try to get equipment stats from localStorage (for solo battles)
-    let playerStats = { ...baseStats }
+    const baseStats = {
+      attack: classStartingStats.attack + levelBonuses.attack,
+      defense: classStartingStats.defense + levelBonuses.defense,
+      health: classStartingStats.health + levelBonuses.health,
+      speed: classStartingStats.speed + levelBonuses.speed,
+      critRate: classStartingStats.critRate + levelBonuses.critRate,
+      critDamage: classStartingStats.critDamage + levelBonuses.critDamage
+    }
+    
+    // Apply class buffs to base stats
+    let playerStats = applyClassBuffs(baseStats, user.playerClass)
     try {
       // Check if running in browser environment
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -155,39 +178,98 @@ export const simulateSoloBattle = async (
       }
     }
     
-    // Simulate battle rounds
+    // Simulate battle rounds with class system
     const logs: string[] = []
     let playerHealth = playerStats.health
     let monsterHealth = monster.stats.health
+    const maxPlayerHealth = playerStats.health
+    
+    // Initialize battle state for class passives
+    let battleState = initializeBattleState(user.playerClass)
     
     logs.push(`🔥 ${user.displayName} encounters a ${monster.name}!`)
     logs.push(`⚔️ Battle begins! Player (${playerHealth} HP) vs ${monster.name} (${monsterHealth} HP)`)
     
     let round = 1
     while (playerHealth > 0 && monsterHealth > 0 && round <= 20) {
-      // Both player and monster attack each round automatically
+      // Update battle state
+      battleState.isLowHealth = playerHealth < (maxPlayerHealth * 0.3)
       
       // Player attacks first (always)
-      const playerIsCrit = Math.random() < playerStats.critRate
+      let playerIsCrit = Math.random() < playerStats.critRate
+      
+      // Check for forced crit (Forest Camouflage)
+      if (shouldForceFirstAttackCrit(user.playerClass, battleState)) {
+        playerIsCrit = true
+      }
+      
       const playerBaseDamage = Math.floor(playerStats.attack * (0.9 + Math.random() * 0.3))
-      const playerDamage = playerIsCrit ? Math.floor(playerBaseDamage * playerStats.critDamage) : playerBaseDamage
+      const baseDamage = playerIsCrit ? Math.floor(playerBaseDamage * playerStats.critDamage) : playerBaseDamage
+      
+      // Apply class passives
+      const playerPassiveResult = processClassPassives(
+        user.playerClass, 
+        baseDamage, 
+        playerIsCrit, 
+        true, // isAttacking
+        battleState
+      )
+      
+      const playerDamage = playerPassiveResult.finalDamage
+      battleState = playerPassiveResult.updatedState
       
       monsterHealth = Math.max(0, monsterHealth - playerDamage)
       logs.push(`⚔️ Round ${round}: Player ${playerIsCrit ? 'critically ' : ''}deals ${playerDamage} damage to ${monster.name}${playerIsCrit ? ' (CRITICAL!)' : ''}`)
       
+      // Handle bonus attacks (Spell Surge)
+      if (playerPassiveResult.bonusAttack && playerPassiveResult.bonusAttack > 0) {
+        monsterHealth = Math.max(0, monsterHealth - playerPassiveResult.bonusAttack)
+        logs.push(`✨ Bonus spell deals ${playerPassiveResult.bonusAttack} additional damage!`)
+      }
+      
       // Check if monster is defeated
       if (monsterHealth <= 0) {
         logs.push(`💀 ${monster.name} is defeated!`)
+        
+        // Handle on-kill effects
+        if (user.playerClass === 'berserker') {
+          battleState.rampageStacks = (battleState.rampageStacks || 0) + 1
+        }
         break
       }
       
       // Monster attacks back automatically
       const monsterIsCrit = Math.random() < (monster.stats.critRate || 0.05)
       const monsterBaseDamage = Math.floor(monster.stats.attack * (0.9 + Math.random() * 0.3))
-      const monsterDamage = monsterIsCrit ? Math.floor(monsterBaseDamage * 1.5) : monsterBaseDamage
+      const baseMonstDamage = monsterIsCrit ? Math.floor(monsterBaseDamage * 1.5) : monsterBaseDamage
       
-      playerHealth = Math.max(0, playerHealth - monsterDamage)
-      logs.push(`🩸 Round ${round}: ${monster.name} ${monsterIsCrit ? 'critically ' : ''}deals ${monsterDamage} damage to Player${monsterIsCrit ? ' (CRITICAL!)' : ''}`)
+      // Apply defensive class passives
+      const monsterPassiveResult = processClassPassives(
+        user.playerClass, 
+        baseMonstDamage, 
+        monsterIsCrit, 
+        false, // isAttacking
+        battleState
+      )
+      
+      battleState = monsterPassiveResult.updatedState
+      
+      // Check for dodge
+      if (monsterPassiveResult.shouldDodge) {
+        logs.push(`🌟 Player dodges the attack!`)
+      } else {
+        let monsterDamage = monsterPassiveResult.finalDamage
+        
+        // Check unstoppable force
+        if (canSurviveLethalDamage(user.playerClass, battleState) && 
+            playerHealth - monsterDamage <= 0) {
+          monsterDamage = playerHealth - 1
+          logs.push(`🛡️ Unstoppable Force prevents lethal damage!`)
+        }
+        
+        playerHealth = Math.max(0, playerHealth - monsterDamage)
+        logs.push(`🩸 Round ${round}: ${monster.name} ${monsterIsCrit ? 'critically ' : ''}deals ${monsterDamage} damage to Player${monsterIsCrit ? ' (CRITICAL!)' : ''}`)
+      }
       
       // Check if player is defeated
       if (playerHealth <= 0) {
@@ -223,7 +305,7 @@ export const simulateSoloBattle = async (
     }
     
     // Generate rewards
-    const rewards = generateSoloBattleRewards(userId, winner, monster)
+    const rewards = generateSoloBattleRewards(userId, winner, monster, user.playerClass)
     
     // Validate results before updating
     if (!winner || !rewards || !logs) {
@@ -261,7 +343,8 @@ export const simulateSoloBattle = async (
 const generateSoloBattleRewards = (
   userId: string,
   winner: 'player' | 'monster' | 'draw',
-  monster: any
+  monster: any,
+  userClass?: string
 ): BattleReward[] => {
   const reward: BattleReward = {
     userId,
@@ -272,10 +355,14 @@ const generateSoloBattleRewards = (
   
   if (winner === 'player') {
     // Full rewards for victory
-    reward.experience = Math.floor(
+    const baseExp = Math.floor(
       monster.rewards.experienceRange[0] + 
       Math.random() * (monster.rewards.experienceRange[1] - monster.rewards.experienceRange[0])
     )
+    
+    // Apply class experience multiplier
+    const expMultiplier = getExperienceMultiplier(userClass)
+    reward.experience = Math.floor(baseExp * expMultiplier)
     reward.currency = Math.floor(
       monster.rewards.currencyRange[0] + 
       Math.random() * (monster.rewards.currencyRange[1] - monster.rewards.currencyRange[0])

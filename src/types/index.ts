@@ -9,6 +9,8 @@ export interface User {
   lastActive: Date
   lastSoloBattleAt?: Date
   circles: string[]
+  playerClass?: string // ID of the selected class
+  classSelectedAt?: Date // When the class was selected
 }
 
 export interface Circle {

@@ -7,6 +7,7 @@ import Circle from './pages/Circle'
 import Forge from './pages/Forge'
 import InventoryPage from './pages/Inventory'
 import SoloBattles from './pages/SoloBattles'
+import ClassSelection from './components/ClassSelection'
 
 function App() {
   const { user, loading } = useAuth()
@@ -27,6 +28,19 @@ function App() {
 
   if (!user) {
     return <AuthForm onSuccess={() => {}} />
+  }
+
+  // Check if user needs to select a class
+  if (!user.playerClass) {
+    return (
+      <ClassSelection 
+        onClassSelected={(classId) => {
+          // The component handles the database update
+          // The user will be updated via auth context
+          window.location.reload()
+        }}
+      />
+    )
   }
 
   return (
