@@ -1,10 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import AuthForm from './components/AuthForm'
+import Navigation from './components/Navigation'
 import Dashboard from './pages/Dashboard'
 import Circle from './pages/Circle'
 import Forge from './pages/Forge'
 import InventoryPage from './pages/Inventory'
+import SoloBattles from './pages/SoloBattles'
 
 function App() {
   const { user, loading } = useAuth()
@@ -30,11 +32,13 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-black text-white">
+        <Navigation />
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/battles" element={<SoloBattles />} />
+          <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/circle/:id" element={<Circle />} />
           <Route path="/forge/:id" element={<Forge />} />
-          <Route path="/inventory" element={<InventoryPage />} />
         </Routes>
       </div>
     </Router>

@@ -23,7 +23,7 @@ export default function Dashboard() {
   const [showBattleScreen, setShowBattleScreen] = useState(false)
   const [nextSoloBattleTime, setNextSoloBattleTime] = useState<string>('Ready!')
   
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -78,9 +78,6 @@ export default function Dashboard() {
     navigate(`/circle/${circleId}`)
   }
 
-  const handleLogout = async () => {
-    await logout()
-  }
 
   const getNextBattleTime = (circle: Circle) => {
     if (!circle.lastBattleAt) return 'Ready!'
@@ -195,17 +192,11 @@ export default function Dashboard() {
           <h1 className="text-4xl font-bold gradient-text mb-2">Idle Circle</h1>
           <p className="text-gray-400">Your idle adventure awaits</p>
         </div>
-        <div className="flex items-center space-x-4 animate-slide-in" style={{ animationDelay: '0.2s' }}>
+        <div className="animate-slide-in" style={{ animationDelay: '0.2s' }}>
           <div className="text-right">
             <div className="text-white font-medium">Welcome back,</div>
             <div className="text-blue-400">{user?.displayName}</div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105"
-          >
-            Logout
-          </button>
         </div>
       </div>
 
