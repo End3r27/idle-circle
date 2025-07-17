@@ -997,8 +997,8 @@ export const generateMonster = (playerLevel: number, playerCount: number = 1): M
   const monsterLevel = Math.max(1, playerLevel + Math.floor(Math.random() * 7) - 3)
   
   // Scale stats based on level and player count
-  const levelMultiplier = 1 + (monsterLevel - 1) * 0.12
-  const groupMultiplier = Math.sqrt(playerCount) * 0.8
+  const levelMultiplier = 1 + (monsterLevel - 1) * 0.18
+  const groupMultiplier = Math.sqrt(playerCount) * 0.9
   
   const scaledStats: PlayerStats = {
     attack: Math.floor(template.baseStats.attack * levelMultiplier * groupMultiplier),

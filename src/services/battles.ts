@@ -140,7 +140,7 @@ export const simulateBattle = async (
         // Each alive Team 1 player attacks the same target
         for (const attacker of aliveTeam1) {
           const isCrit = Math.random() < 0.1
-          const baseDamage = Math.floor(attacker.player.stats.attack * (0.9 + Math.random() * 0.3))
+          const baseDamage = Math.floor(attacker.player.stats.attack * (0.8 + Math.random() * 0.3))
           const damage = isCrit ? Math.floor(baseDamage * 1.5) : baseDamage
           totalDamage += damage
         }
@@ -168,7 +168,7 @@ export const simulateBattle = async (
         // Each alive Team 2 player attacks the same target
         for (const attacker of stillAliveTeam2) {
           const isCrit = Math.random() < 0.1
-          const baseDamage = Math.floor(attacker.player.stats.attack * (0.9 + Math.random() * 0.3))
+          const baseDamage = Math.floor(attacker.player.stats.attack * (0.8 + Math.random() * 0.3))
           const damage = isCrit ? Math.floor(baseDamage * 1.5) : baseDamage
           totalDamage += damage
         }

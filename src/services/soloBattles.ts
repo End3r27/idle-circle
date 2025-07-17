@@ -94,11 +94,11 @@ export const simulateSoloBattle = async (
       : getClassStartingStats('warrior') // Default to warrior if no class selected
     
     const levelBonuses = {
-      attack: user.level * 2.5,
-      defense: user.level * 1.2,
-      health: user.level * 18,
-      speed: user.level * 0.8,
-      critRate: user.level * 0.003,
+      attack: user.level * 2.0,
+      defense: user.level * 1.0,
+      health: user.level * 15,
+      speed: user.level * 0.7,
+      critRate: user.level * 0.002,
       critDamage: 0
     }
     
@@ -202,7 +202,7 @@ export const simulateSoloBattle = async (
         playerIsCrit = true
       }
       
-      const playerBaseDamage = Math.floor(playerStats.attack * (0.9 + Math.random() * 0.3))
+      const playerBaseDamage = Math.floor(playerStats.attack * (0.8 + Math.random() * 0.3))
       const baseDamage = playerIsCrit ? Math.floor(playerBaseDamage * playerStats.critDamage) : playerBaseDamage
       
       // Apply class passives
@@ -239,7 +239,7 @@ export const simulateSoloBattle = async (
       
       // Monster attacks back automatically
       const monsterIsCrit = Math.random() < (monster.stats.critRate || 0.05)
-      const monsterBaseDamage = Math.floor(monster.stats.attack * (0.9 + Math.random() * 0.3))
+      const monsterBaseDamage = Math.floor(monster.stats.attack * (1.1 + Math.random() * 0.4))
       const baseMonstDamage = monsterIsCrit ? Math.floor(monsterBaseDamage * 1.5) : monsterBaseDamage
       
       // Apply defensive class passives

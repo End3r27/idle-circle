@@ -65,9 +65,9 @@ export default function AutoBattleScreen({
       }
       
       // Wait for animation
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await new Promise(resolve => setTimeout(resolve, 3000))
       setAnimatingDamage(null)
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 1500))
     }
 
     setBattlePhase('finished')
