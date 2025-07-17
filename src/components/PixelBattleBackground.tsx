@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import '../styles/pixel-art.css'
 
 interface PixelBattleBackgroundProps {
   environment?: 'dungeon' | 'forest' | 'desert' | 'ice' | 'volcano' | 'void' | 'celestial'

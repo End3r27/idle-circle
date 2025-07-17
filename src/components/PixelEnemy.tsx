@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Monster } from '../types'
-import '../styles/pixel-art.css'
 
 interface PixelEnemyProps {
   monster: Monster
