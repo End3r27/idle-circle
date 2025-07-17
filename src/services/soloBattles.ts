@@ -80,17 +80,28 @@ export const simulateSoloBattle = async (
         const savedLoadout = localStorage.getItem(`loadout_${user.id}`)
         if (savedLoadout) {
           const loadout = JSON.parse(savedLoadout)
-          const equipmentStats = Object.values(loadout).reduce((total: any, item: any) => {
-            if (!item) return total
+          
+          interface EquipmentStats {
+            attack: number
+            defense: number
+            health: number
+            speed: number
+            critRate: number
+            critDamage: number
+          }
+          
+          const equipmentStats = Object.values(loadout).reduce((total: EquipmentStats, item: unknown) => {
+            if (!item || typeof item !== 'object') return total
+            const itemStats = (item as any).stats || {}
             return {
-              attack: total.attack + (item.stats?.attack || 0),
-              defense: total.defense + (item.stats?.defense || 0),
-              health: total.health + (item.stats?.health || 0),
-              speed: total.speed + (item.stats?.speed || 0),
-              critRate: total.critRate + (item.stats?.critRate || 0),
-              critDamage: total.critDamage + (item.stats?.critDamage || 0)
+              attack: total.attack + (itemStats.attack || 0),
+              defense: total.defense + (itemStats.defense || 0),
+              health: total.health + (itemStats.health || 0),
+              speed: total.speed + (itemStats.speed || 0),
+              critRate: total.critRate + (itemStats.critRate || 0),
+              critDamage: total.critDamage + (itemStats.critDamage || 0)
             }
-          }, { attack: 0, defense: 0, health: 0, speed: 0, critRate: 0, critDamage: 0 })
+          }, { attack: 0, defense: 0, health: 0, speed: 0, critRate: 0, critDamage: 0 } as EquipmentStats)
           
           playerStats = {
             attack: baseStats.attack + equipmentStats.attack,
