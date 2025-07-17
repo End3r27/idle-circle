@@ -9,6 +9,7 @@ export default function Navigation() {
   const navItems = [
     { path: '/', icon: '🏠', label: 'Dashboard' },
     { path: '/battles', icon: '⚔️', label: 'Solo Battles' },
+    { path: '/raids', icon: '🐉', label: 'Boss Raids' },
     { path: '/inventory', icon: '🎒', label: 'Equipment' },
   ]
 

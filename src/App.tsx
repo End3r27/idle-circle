@@ -8,6 +8,7 @@ import Forge from './pages/Forge'
 import InventoryPage from './pages/Inventory'
 import SoloBattles from './pages/SoloBattles'
 import ClassSelection from './components/ClassSelection'
+import Raids from './pages/Raids'
 import './styles/burst-animations.css'
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/battles" element={<SoloBattles />} />
           <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/raids" element={<Raids />} />
           <Route path="/circle/:id" element={<Circle />} />
           <Route path="/forge/:id" element={<Forge />} />
         </Routes>
