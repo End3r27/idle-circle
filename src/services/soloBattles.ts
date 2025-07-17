@@ -62,7 +62,7 @@ export const createSoloBattle = async (
     const docRef = await addDoc(collection(db, 'battles'), battleData)
     
     // Start battle simulation
-    await simulateSoloBattle(docRef.id, user, monster)
+    await simulateSoloBattle(docRef.id, user, monster, userId)
     
     return { success: true, battleId: docRef.id }
   } catch (error: any) {
@@ -73,7 +73,8 @@ export const createSoloBattle = async (
 export const simulateSoloBattle = async (
   battleId: string,
   user: User,
-  monster: any
+  monster: any,
+  userId: string
 ): Promise<void> => {
   try {
     const battleRef = doc(db, 'battles', battleId)
