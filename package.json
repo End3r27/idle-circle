@@ -10,14 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "firebase": "^10.7.1",
+    "firebase": "^12.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1"
   },
   "devDependencies": {
-    "@firebase/app-types": "^0.9.3",
-    "@firebase/firestore-types": "^3.0.3",
     "@types/node": "^24.0.14",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
