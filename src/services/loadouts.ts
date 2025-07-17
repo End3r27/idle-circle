@@ -4,7 +4,6 @@ import {
   addDoc, 
   updateDoc, 
   getDocs, 
-  getDoc, 
   query, 
   where,
   deleteDoc
@@ -52,7 +51,6 @@ export const updatePlayerLoadout = async (
     }
     
     const playerDoc = snapshot.docs[0]
-    const player = playerDoc.data() as Player
     
     // Calculate new stats based on loadout
     const newStats = calculateStatsFromLoadout(loadout)

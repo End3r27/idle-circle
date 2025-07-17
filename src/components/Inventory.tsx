@@ -99,23 +99,23 @@ export default function Inventory({ onItemSelected, filterType }: InventoryProps
                     </div>
                     
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      {item.stats.attack !== 0 && (
-                        <div className={getStatColor(item.stats.attack!)}>
+                      {item.stats.attack !== 0 && item.stats.attack !== undefined && (
+                        <div className={getStatColor(item.stats.attack)}>
                           ATK: {item.stats.attack > 0 ? '+' : ''}{item.stats.attack}
                         </div>
                       )}
-                      {item.stats.defense !== 0 && (
-                        <div className={getStatColor(item.stats.defense!)}>
+                      {item.stats.defense !== 0 && item.stats.defense !== undefined && (
+                        <div className={getStatColor(item.stats.defense)}>
                           DEF: {item.stats.defense > 0 ? '+' : ''}{item.stats.defense}
                         </div>
                       )}
-                      {item.stats.health !== 0 && (
-                        <div className={getStatColor(item.stats.health!)}>
+                      {item.stats.health !== 0 && item.stats.health !== undefined && (
+                        <div className={getStatColor(item.stats.health)}>
                           HP: {item.stats.health > 0 ? '+' : ''}{item.stats.health}
                         </div>
                       )}
-                      {item.stats.speed !== 0 && (
-                        <div className={getStatColor(item.stats.speed!)}>
+                      {item.stats.speed !== 0 && item.stats.speed !== undefined && (
+                        <div className={getStatColor(item.stats.speed)}>
                           SPD: {item.stats.speed > 0 ? '+' : ''}{item.stats.speed}
                         </div>
                       )}
@@ -174,17 +174,17 @@ export default function Inventory({ onItemSelected, filterType }: InventoryProps
               <div>
                 <span className="text-gray-400">Stats:</span>
                 <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                  <div className={getStatColor(selectedItem.stats.attack!)}>
-                    Attack: {selectedItem.stats.attack > 0 ? '+' : ''}{selectedItem.stats.attack}
+                  <div className={getStatColor(selectedItem.stats.attack || 0)}>
+                    Attack: {(selectedItem.stats.attack || 0) > 0 ? '+' : ''}{selectedItem.stats.attack || 0}
                   </div>
-                  <div className={getStatColor(selectedItem.stats.defense!)}>
-                    Defense: {selectedItem.stats.defense > 0 ? '+' : ''}{selectedItem.stats.defense}
+                  <div className={getStatColor(selectedItem.stats.defense || 0)}>
+                    Defense: {(selectedItem.stats.defense || 0) > 0 ? '+' : ''}{selectedItem.stats.defense || 0}
                   </div>
-                  <div className={getStatColor(selectedItem.stats.health!)}>
-                    Health: {selectedItem.stats.health > 0 ? '+' : ''}{selectedItem.stats.health}
+                  <div className={getStatColor(selectedItem.stats.health || 0)}>
+                    Health: {(selectedItem.stats.health || 0) > 0 ? '+' : ''}{selectedItem.stats.health || 0}
                   </div>
-                  <div className={getStatColor(selectedItem.stats.speed!)}>
-                    Speed: {selectedItem.stats.speed > 0 ? '+' : ''}{selectedItem.stats.speed}
+                  <div className={getStatColor(selectedItem.stats.speed || 0)}>
+                    Speed: {(selectedItem.stats.speed || 0) > 0 ? '+' : ''}{selectedItem.stats.speed || 0}
                   </div>
                 </div>
               </div>

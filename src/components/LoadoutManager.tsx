@@ -246,18 +246,18 @@ export default function LoadoutManager({ circleId, isOpen, onClose }: LoadoutMan
                             </div>
                           </div>
                           <div className="text-xs space-y-1">
-                            {item.stats.attack !== 0 && (
-                              <div className={getStatColor(item.stats.attack!)}>
+                            {item.stats.attack !== 0 && item.stats.attack !== undefined && (
+                              <div className={getStatColor(item.stats.attack)}>
                                 ATK: {item.stats.attack > 0 ? '+' : ''}{item.stats.attack}
                               </div>
                             )}
-                            {item.stats.defense !== 0 && (
-                              <div className={getStatColor(item.stats.defense!)}>
+                            {item.stats.defense !== 0 && item.stats.defense !== undefined && (
+                              <div className={getStatColor(item.stats.defense)}>
                                 DEF: {item.stats.defense > 0 ? '+' : ''}{item.stats.defense}
                               </div>
                             )}
-                            {item.stats.health !== 0 && (
-                              <div className={getStatColor(item.stats.health!)}>
+                            {item.stats.health !== 0 && item.stats.health !== undefined && (
+                              <div className={getStatColor(item.stats.health)}>
                                 HP: {item.stats.health > 0 ? '+' : ''}{item.stats.health}
                               </div>
                             )}

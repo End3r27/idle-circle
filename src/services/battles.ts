@@ -8,8 +8,7 @@ import {
   where, 
   orderBy, 
   limit,
-  updateDoc,
-  Timestamp
+  updateDoc
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { Battle, Circle, Player, BattleReward, Item } from '../types'
@@ -24,8 +23,6 @@ export const createBattle = async (
     if (!circleDoc.exists()) {
       return { success: false, error: 'Circle not found' }
     }
-    
-    const circle = circleDoc.data() as Circle
     
     // Get all players in the circle
     const playersQuery = query(
