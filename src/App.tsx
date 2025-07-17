@@ -4,6 +4,7 @@ import AuthForm from './components/AuthForm'
 import Dashboard from './pages/Dashboard'
 import Circle from './pages/Circle'
 import Forge from './pages/Forge'
+import InventoryPage from './pages/Inventory'
 
 function App() {
   const { user, loading } = useAuth()
@@ -27,6 +28,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/circle/:id" element={<Circle />} />
           <Route path="/forge/:id" element={<Forge />} />
+          <Route path="/inventory" element={<InventoryPage />} />
         </Routes>
       </div>
     </Router>

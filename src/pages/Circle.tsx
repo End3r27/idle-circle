@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getCircleMembers } from '../services/circles'
 import { scheduleAutoBattle } from '../services/battles'
-import { User, Circle } from '../types'
+import { getPlayerLoadout, getRoleColor } from '../services/loadouts'
+import { User, Circle, Player } from '../types'
 import { useAuth } from '../hooks/useAuth'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../services/firebase'
 import BattleHistory from '../components/BattleHistory'
 import ManualBattle from '../components/ManualBattle'
+import LoadoutManager from '../components/LoadoutManager'
 
 export default function Circle() {
   const { id } = useParams<{ id: string }>()
@@ -15,8 +17,10 @@ export default function Circle() {
   const { user } = useAuth()
   const [circle, setCircle] = useState<Circle | null>(null)
   const [members, setMembers] = useState<User[]>([])
+  const [players, setPlayers] = useState<(Player & { user: User })[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [showLoadoutManager, setShowLoadoutManager] = useState(false)
 
   useEffect(() => {
     if (id && user) {
@@ -46,6 +50,16 @@ export default function Circle() {
       // Get members
       const circleMembers = await getCircleMembers(id)
       setMembers(circleMembers)
+      
+      // Get player loadout data
+      const playerData = await Promise.all(
+        circleMembers.map(async (member) => {
+          const playerLoadout = await getPlayerLoadout(member.id, id)
+          return playerLoadout ? { ...playerLoadout, user: member } : null
+        })
+      )
+      
+      setPlayers(playerData.filter(Boolean) as (Player & { user: User })[])
       
     } catch (error) {
       console.error('Error loading circle data:', error)
@@ -110,22 +124,51 @@ export default function Circle() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Members ({members.length}/{circle.maxMembers})</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Members ({members.length}/{circle.maxMembers})</h2>
+            <button
+              onClick={() => setShowLoadoutManager(true)}
+              className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
+            >
+              ⚔️ My Loadout
+            </button>
+          </div>
           {members.length === 0 ? (
             <p className="text-gray-300">No members yet</p>
           ) : (
             <div className="space-y-2">
-              {members.map((member) => (
-                <div key={member.id} className="flex justify-between items-center bg-gray-700 p-3 rounded">
-                  <div>
-                    <div className="font-semibold">{member.displayName}</div>
-                    <div className="text-sm text-gray-400">Level {member.level}</div>
+              {members.map((member) => {
+                const playerData = players.find(p => p.user.id === member.id)
+                return (
+                  <div key={member.id} className="bg-gray-700 p-3 rounded">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-semibold">{member.displayName}</div>
+                        <div className="text-sm text-gray-400">Level {member.level}</div>
+                        {playerData && (
+                          <div className="mt-1">
+                            <span className={`text-xs px-2 py-1 rounded ${getRoleColor(playerData.role)} bg-gray-600`}>
+                              {playerData.role.charAt(0).toUpperCase() + playerData.role.slice(1)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        {member.id === circle.ownerId && (
+                          <span className="text-yellow-400 text-sm">👑 Owner</span>
+                        )}
+                        {playerData && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            <div>ATK: {playerData.stats.attack}</div>
+                            <div>DEF: {playerData.stats.defense}</div>
+                            <div>HP: {playerData.stats.health}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  {member.id === circle.ownerId && (
-                    <span className="text-yellow-400 text-sm">👑 Owner</span>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -175,6 +218,12 @@ export default function Circle() {
           circleId={id!} 
         />
       </div>
+
+      <LoadoutManager
+        circleId={id!}
+        isOpen={showLoadoutManager}
+        onClose={() => setShowLoadoutManager(false)}
+      />
     </div>
   )
 }

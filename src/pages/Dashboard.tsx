@@ -113,6 +113,14 @@ export default function Dashboard() {
             <p className="text-gray-300">{user?.experience || 0} XP</p>
             <p className="text-gray-300">Circles: {circles.length}</p>
           </div>
+          <div className="mt-4">
+            <button
+              onClick={() => navigate('/inventory')}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 w-full"
+            >
+              📦 View Inventory
+            </button>
+          </div>
         </div>
       </div>
 
