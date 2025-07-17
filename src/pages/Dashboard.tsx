@@ -2,15 +2,21 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { getUserCircles } from '../services/circles'
-import { Circle } from '../types'
+import { getBattleHistory } from '../services/battles'
+import { Circle, Battle } from '../types'
 import CreateCircleModal from '../components/CreateCircleModal'
 import JoinCircleModal from '../components/JoinCircleModal'
+import LoadoutManager from '../components/LoadoutManager'
 
 export default function Dashboard() {
   const [circles, setCircles] = useState<Circle[]>([])
+  const [recentBattles, setRecentBattles] = useState<Battle[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
+  const [showLoadoutManager, setShowLoadoutManager] = useState(false)
+  const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState(new Date())
   
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -18,6 +24,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       loadCircles()
+      // Update timer every second
+      const timerInterval = setInterval(() => setCurrentTime(new Date()), 1000)
+      return () => clearInterval(timerInterval)
     }
   }, [user])
 
@@ -27,6 +36,20 @@ export default function Dashboard() {
     setLoading(true)
     const userCircles = await getUserCircles(user.id)
     setCircles(userCircles)
+    
+    // Load recent battles from all user circles
+    const allBattles: Battle[] = []
+    for (const circle of userCircles) {
+      const battles = await getBattleHistory(circle.id, 3)
+      allBattles.push(...battles)
+    }
+    
+    // Sort by date and take the 5 most recent
+    const sortedBattles = allBattles.sort((a, b) => 
+      new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+    ).slice(0, 5)
+    
+    setRecentBattles(sortedBattles)
     setLoading(false)
   }
 
@@ -42,6 +65,37 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await logout()
+  }
+
+  const getNextBattleTime = (circle: Circle) => {
+    if (!circle.lastBattleAt) return 'Ready!'
+    
+    try {
+      const lastBattle = new Date(circle.lastBattleAt)
+      if (isNaN(lastBattle.getTime())) return 'Ready!'
+      
+      const nextBattle = new Date(lastBattle.getTime() + (circle.settings.battleInterval * 60 * 1000))
+      const now = currentTime
+      
+      if (nextBattle <= now) return 'Ready!'
+      
+      const timeLeft = nextBattle.getTime() - now.getTime()
+      if (timeLeft <= 0) return 'Ready!'
+      
+      const minutes = Math.floor(timeLeft / 60000)
+      const seconds = Math.floor((timeLeft % 60000) / 1000)
+      
+      if (isNaN(minutes) || isNaN(seconds)) return 'Ready!'
+      
+      return `${minutes}m ${seconds}s`
+    } catch (error) {
+      return 'Ready!'
+    }
+  }
+
+  const handleOpenLoadout = (circleId: string) => {
+    setSelectedCircleId(circleId)
+    setShowLoadoutManager(true)
   }
 
   return (
@@ -104,18 +158,35 @@ export default function Dashboard() {
               {circles.map((circle, index) => (
                 <div
                   key={circle.id}
-                  onClick={() => navigate(`/circle/${circle.id}`)}
-                  className="bg-black/20 p-4 rounded-xl cursor-pointer hover:bg-black/30 transition-all duration-300 hover:scale-105 border border-gray-700/50 hover:border-blue-500/30 animate-slide-in"
+                  className="bg-black/20 p-4 rounded-xl border border-gray-700/50 hover:border-blue-500/30 animate-slide-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
                       <div className="font-semibold text-white">{circle.name}</div>
                       <div className="text-sm text-gray-400">
                         {circle.members.length}/{circle.maxMembers} members
                       </div>
                     </div>
-                    <div className="text-blue-400">→</div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500">Next Battle</div>
+                      <div className="text-sm font-mono text-blue-400">{getNextBattleTime(circle)}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => navigate(`/circle/${circle.id}`)}
+                      className="flex-1 bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition-all duration-300 hover:scale-105"
+                    >
+                      View Circle
+                    </button>
+                    <button
+                      onClick={() => handleOpenLoadout(circle.id)}
+                      className="bg-purple-600/80 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-sm transition-all duration-300 hover:scale-105"
+                    >
+                      ⚔️ Loadout
+                    </button>
                   </div>
                 </div>
               ))}
@@ -130,10 +201,49 @@ export default function Dashboard() {
             </div>
             <h2 className="text-xl font-semibold">Recent Battles</h2>
           </div>
-          <div className="text-center py-8">
-            <div className="text-gray-400 mb-4">No battles yet</div>
-            <p className="text-sm text-gray-500">Join a circle to start battling!</p>
-          </div>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : recentBattles.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-4">No battles yet</div>
+              <p className="text-sm text-gray-500">Join a circle to start battling!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentBattles.map((battle, index) => {
+                const circle = circles.find(c => c.id === battle.circleId)
+                return (
+                  <div
+                    key={battle.id}
+                    className="bg-black/20 p-3 rounded-xl border border-gray-700/50 animate-slide-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-medium text-white text-sm">
+                          {circle?.name || 'Unknown Circle'}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(battle.startedAt).toLocaleDateString()} at {new Date(battle.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-xs px-2 py-1 rounded ${
+                          battle.result.winner === 'draw' ? 'bg-yellow-600/20 text-yellow-400' :
+                          'bg-green-600/20 text-green-400'
+                        }`}>
+                          {battle.result.winner === 'draw' ? 'Draw' : 'Battle Won'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         <div className="glass-effect p-6 rounded-2xl card-hover animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -180,6 +290,14 @@ export default function Dashboard() {
         onClose={() => setShowJoinModal(false)}
         onSuccess={handleJoinSuccess}
       />
+
+      {selectedCircleId && (
+        <LoadoutManager
+          circleId={selectedCircleId}
+          isOpen={showLoadoutManager}
+          onClose={() => setShowLoadoutManager(false)}
+        />
+      )}
     </div>
   )
 }
