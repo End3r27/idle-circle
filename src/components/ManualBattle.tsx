@@ -21,12 +21,16 @@ export default function ManualBattle({ circleId, onBattleCreated }: ManualBattle
       
       if (result.success) {
         setMessage(`Battle started successfully! Battle ID: ${result.battleId}`)
-        onBattleCreated()
         
-        // Clear success message after 5 seconds
+        // Wait a moment for the battle to complete simulation, then refresh
+        setTimeout(() => {
+          onBattleCreated()
+        }, 1000)
+        
+        // Clear success message after 3 seconds
         setTimeout(() => {
           setMessage('')
-        }, 5000)
+        }, 3000)
       } else {
         setMessage(`Error: ${result.error}`)
       }
