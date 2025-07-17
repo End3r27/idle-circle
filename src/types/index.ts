@@ -7,6 +7,7 @@ export interface User {
   experience: number
   createdAt: Date
   lastActive: Date
+  lastSoloBattleAt?: Date
   circles: string[]
 }
 
@@ -69,17 +70,32 @@ export interface Item {
   forgeable: boolean
 }
 
+export interface Monster {
+  id: string
+  name: string
+  level: number
+  stats: PlayerStats
+  icon: string
+  description: string
+  rewards: {
+    experienceRange: [number, number]
+    itemDropChance: number
+    currencyRange: [number, number]
+  }
+}
+
 export interface Battle {
   id: string
-  circleId: string
-  type: 'auto' | 'event' | 'challenge'
+  circleId?: string // Optional for solo battles
+  type: 'auto' | 'event' | 'challenge' | 'solo'
   participants: string[]
-  teams: {
+  teams?: {
     team1: string[]
     team2: string[]
   }
+  monster?: Monster // For solo battles
   result: {
-    winner: 'team1' | 'team2' | 'draw'
+    winner: 'team1' | 'team2' | 'player' | 'monster' | 'draw'
     rewards: BattleReward[]
     logs: string[]
   }

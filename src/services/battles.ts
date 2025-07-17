@@ -13,7 +13,7 @@ import {
 import { db } from './firebase'
 import { Battle, Circle, Player, BattleReward, Item } from '../types'
 
-export const createBattle = async (
+export const createCircleBattle = async (
   circleId: string,
   type: 'auto' | 'event' | 'challenge' = 'auto'
 ): Promise<{ success: boolean; battleId?: string; error?: string }> => {
@@ -298,7 +298,7 @@ export const scheduleAutoBattle = async (circleId: string): Promise<void> => {
     const battleInterval = circle.settings.battleInterval * 60 * 1000 // Convert to milliseconds
     
     if (timeSinceLastBattle >= battleInterval) {
-      await createBattle(circleId, 'auto')
+      await createCircleBattle(circleId, 'auto')
     }
   } catch (error) {
     console.error('Error scheduling auto battle:', error)

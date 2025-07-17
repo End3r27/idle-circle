@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { getUserCircles } from '../services/circles'
 import { getBattleHistory } from '../services/battles'
+import { scheduleSoloBattle, getSoloBattleHistory } from '../services/soloBattles'
 import { Circle, Battle } from '../types'
 import CreateCircleModal from '../components/CreateCircleModal'
 import JoinCircleModal from '../components/JoinCircleModal'
 import LoadoutManager from '../components/LoadoutManager'
+import AutoBattleScreen from '../components/AutoBattleScreen'
 
 export default function Dashboard() {
   const [circles, setCircles] = useState<Circle[]>([])
@@ -17,6 +19,9 @@ export default function Dashboard() {
   const [showLoadoutManager, setShowLoadoutManager] = useState(false)
   const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [activeBattle, setActiveBattle] = useState<Battle | null>(null)
+  const [showBattleScreen, setShowBattleScreen] = useState(false)
+  const [nextSoloBattleTime, setNextSoloBattleTime] = useState<string>('Ready!')
   
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -25,8 +30,18 @@ export default function Dashboard() {
     if (user) {
       loadCircles()
       // Update timer every second
-      const timerInterval = setInterval(() => setCurrentTime(new Date()), 1000)
-      return () => clearInterval(timerInterval)
+      const timerInterval = setInterval(() => {
+        setCurrentTime(new Date())
+        updateNextSoloBattleTime()
+      }, 1000)
+      // Check for solo battles every 30 seconds
+      const soloBattleInterval = setInterval(checkForSoloBattles, 30000)
+      // Initial solo battle check
+      checkForSoloBattles()
+      return () => {
+        clearInterval(timerInterval)
+        clearInterval(soloBattleInterval)
+      }
     }
   }, [user])
 
@@ -96,6 +111,81 @@ export default function Dashboard() {
   const handleOpenLoadout = (circleId: string) => {
     setSelectedCircleId(circleId)
     setShowLoadoutManager(true)
+  }
+
+  const checkForSoloBattles = async () => {
+    if (!user) return
+    
+    try {
+      // Check if solo battle should trigger
+      await scheduleSoloBattle(user.id)
+      
+      // Get recent solo battles to check for new ones
+      const soloBattles = await getSoloBattleHistory(user.id, 1)
+      if (soloBattles.length > 0) {
+        const latestBattle = soloBattles[0]
+        const battleTime = new Date(latestBattle.startedAt).getTime()
+        const now = new Date().getTime()
+        
+        // If battle was created in the last 30 seconds, show it
+        if (now - battleTime < 30000 && latestBattle.status === 'completed') {
+          setActiveBattle(latestBattle)
+          setShowBattleScreen(true)
+        }
+      }
+      
+      // Update next solo battle timer
+      updateNextSoloBattleTime()
+    } catch (error) {
+      console.error('Error checking for solo battles:', error)
+    }
+  }
+
+  const updateNextSoloBattleTime = () => {
+    if (!user?.lastSoloBattleAt) {
+      setNextSoloBattleTime('Ready!')
+      return
+    }
+    
+    try {
+      const lastBattle = new Date(user.lastSoloBattleAt)
+      if (isNaN(lastBattle.getTime())) {
+        setNextSoloBattleTime('Ready!')
+        return
+      }
+      
+      const nextBattle = new Date(lastBattle.getTime() + (10 * 60 * 1000)) // 10 minutes
+      const now = currentTime
+      
+      if (nextBattle <= now) {
+        setNextSoloBattleTime('Ready!')
+        return
+      }
+      
+      const timeLeft = nextBattle.getTime() - now.getTime()
+      if (timeLeft <= 0) {
+        setNextSoloBattleTime('Ready!')
+        return
+      }
+      
+      const minutes = Math.floor(timeLeft / 60000)
+      const seconds = Math.floor((timeLeft % 60000) / 1000)
+      
+      if (isNaN(minutes) || isNaN(seconds)) {
+        setNextSoloBattleTime('Ready!')
+        return
+      }
+      
+      setNextSoloBattleTime(`${minutes}m ${seconds}s`)
+    } catch (error) {
+      setNextSoloBattleTime('Ready!')
+    }
+  }
+
+  const handleBattleComplete = (result: Battle['result']) => {
+    // Reload circles to update any changes
+    loadCircles()
+    // You could show a notification here about the battle results
   }
 
   return (
@@ -267,6 +357,15 @@ export default function Dashboard() {
               <span className="text-purple-400 font-semibold">{circles.length}</span>
             </div>
           </div>
+          
+          {/* Solo Battle Timer */}
+          <div className="mt-4 p-3 bg-black/20 rounded-xl border border-gray-700/50">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400 text-sm">Next Solo Battle</span>
+              <span className="text-orange-400 font-mono text-sm">{nextSoloBattleTime}</span>
+            </div>
+          </div>
+          
           <div className="mt-6">
             <button
               onClick={() => navigate('/inventory')}
@@ -296,6 +395,16 @@ export default function Dashboard() {
           circleId={selectedCircleId}
           isOpen={showLoadoutManager}
           onClose={() => setShowLoadoutManager(false)}
+        />
+      )}
+
+      {activeBattle && user && (
+        <AutoBattleScreen
+          battle={activeBattle}
+          user={user}
+          isOpen={showBattleScreen}
+          onClose={() => setShowBattleScreen(false)}
+          onBattleComplete={handleBattleComplete}
         />
       )}
     </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createBattle } from '../services/battles'
+import { createCircleBattle } from '../services/battles'
 
 interface ManualBattleProps {
   circleId: string
@@ -14,7 +14,7 @@ export default function ManualBattle({ circleId, onBattleCreated }: ManualBattle
     setLoading(true)
     setMessage('')
 
-    const result = await createBattle(circleId, 'challenge')
+    const result = await createCircleBattle(circleId, 'challenge')
     
     if (result.success) {
       setMessage('Battle started successfully!')
