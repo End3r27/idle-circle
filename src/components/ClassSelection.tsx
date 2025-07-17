@@ -19,19 +19,26 @@ export default function ClassSelection({ onClassSelected, isModal = false }: Cla
   }
 
   const handleConfirmSelection = async () => {
-    if (!selectedClass || !user) return
+    if (!selectedClass || !user) {
+      console.error('Missing selectedClass or user:', { selectedClass, user })
+      return
+    }
 
     setLoading(true)
     try {
+      console.log('Updating user class:', selectedClass.id, 'for user:', user.id)
+      
       // Update user's class in the database
       await updateDoc(doc(db, 'users', user.id), {
         playerClass: selectedClass.id,
         classSelectedAt: new Date()
       })
 
+      console.log('Class selection successful')
       onClassSelected(selectedClass.id)
     } catch (error) {
       console.error('Error updating user class:', error)
+      alert('Failed to save class selection. Please try again.')
     }
     setLoading(false)
   }

@@ -15,10 +15,16 @@ export const applyClassBuffs = (
   baseStats: PlayerStats,
   classId: string | undefined
 ): PlayerStats => {
-  if (!classId) return baseStats
+  if (!classId) {
+    console.log('No class ID provided, using base stats')
+    return baseStats
+  }
 
   const playerClass = getClassById(classId)
-  if (!playerClass) return baseStats
+  if (!playerClass) {
+    console.warn('Class not found:', classId)
+    return baseStats
+  }
 
   let buffedStats = { ...baseStats }
 

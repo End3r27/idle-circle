@@ -19,7 +19,8 @@
       "Bash(npx tsc:*)",
       "Bash(/dev/null)",
       "Bash(rm:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

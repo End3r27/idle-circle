@@ -31,12 +31,14 @@ function App() {
   }
 
   // Check if user needs to select a class
-  if (!user.playerClass) {
+  if (user && !user.playerClass) {
+    console.log('User needs to select a class:', user)
     return (
       <ClassSelection 
         onClassSelected={() => {
           // The component handles the database update
           // The user will be updated via auth context
+          console.log('Class selected, reloading page')
           window.location.reload()
         }}
       />

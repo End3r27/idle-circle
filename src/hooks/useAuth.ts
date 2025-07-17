@@ -15,10 +15,17 @@ export const useAuth = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userData = await getUserData(firebaseUser.uid)
-        setUser(userData)
-      } else {
+      try {
+        if (firebaseUser) {
+          console.log('Firebase user authenticated:', firebaseUser.uid)
+          const userData = await getUserData(firebaseUser.uid)
+          setUser(userData)
+        } else {
+          console.log('No Firebase user, setting user to null')
+          setUser(null)
+        }
+      } catch (error) {
+        console.error('Error in auth state change:', error)
         setUser(null)
       }
       setLoading(false)
@@ -31,8 +38,11 @@ export const useAuth = () => {
     try {
       const userDoc = await getDoc(doc(db, 'users', userId))
       if (userDoc.exists()) {
-        return { id: userId, ...userDoc.data() } as User
+        const userData = userDoc.data()
+        console.log('User data loaded:', userData)
+        return { id: userId, ...userData } as User
       }
+      console.log('User document does not exist for:', userId)
       return null
     } catch (error) {
       console.error('Error fetching user data:', error)
