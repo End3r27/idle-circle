@@ -261,14 +261,6 @@ export default function PixelBattleBackground({
       <div className="relative z-10">
         {children}
       </div>
-
-      <style jsx>{`
-        @keyframes lightningFlash {
-          0%, 95%, 100% { opacity: 0; }
-          96%, 98% { opacity: 0.1; }
-          97% { opacity: 0.3; }
-        }
-      `}</style>
     </div>
   )
 }

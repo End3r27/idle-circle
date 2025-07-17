@@ -532,3 +532,10 @@
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(2) hue-rotate(60deg); }
 }
+
+/* Lightning Flash Effect */
+@keyframes lightningFlash {
+  0%, 95%, 100% { opacity: 0; }
+  96%, 98% { opacity: 0.1; }
+  97% { opacity: 0.3; }
+}
