@@ -1,28 +1,179 @@
-import { useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { getCircleMembers } from '../services/circles'
+import { scheduleAutoBattle } from '../services/battles'
+import { User, Circle } from '../types'
+import { useAuth } from '../hooks/useAuth'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../services/firebase'
+import BattleHistory from '../components/BattleHistory'
+import ManualBattle from '../components/ManualBattle'
 
 export default function Circle() {
   const { id } = useParams<{ id: string }>()
-  
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const [circle, setCircle] = useState<Circle | null>(null)
+  const [members, setMembers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  useEffect(() => {
+    if (id && user) {
+      loadCircleData()
+      // Check for auto battles every 30 seconds
+      const interval = setInterval(checkForAutoBattles, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [id, user])
+
+  const loadCircleData = async () => {
+    if (!id) return
+    
+    setLoading(true)
+    
+    try {
+      // Get circle data
+      const circleDoc = await getDoc(doc(db, 'circles', id))
+      if (!circleDoc.exists()) {
+        navigate('/')
+        return
+      }
+      
+      const circleData = { id: circleDoc.id, ...circleDoc.data() } as Circle
+      setCircle(circleData)
+      
+      // Get members
+      const circleMembers = await getCircleMembers(id)
+      setMembers(circleMembers)
+      
+    } catch (error) {
+      console.error('Error loading circle data:', error)
+    }
+    
+    setLoading(false)
+  }
+
+  const checkForAutoBattles = async () => {
+    if (id) {
+      await scheduleAutoBattle(id)
+    }
+  }
+
+  const handleBattleCreated = () => {
+    setRefreshKey(prev => prev + 1)
+  }
+
+  const getNextBattleTime = () => {
+    if (!circle?.lastBattleAt) return 'Soon'
+    
+    const lastBattle = new Date(circle.lastBattleAt)
+    const nextBattle = new Date(lastBattle.getTime() + (circle.settings.battleInterval * 60 * 1000))
+    const now = new Date()
+    
+    if (nextBattle <= now) return 'Ready!'
+    
+    const timeLeft = nextBattle.getTime() - now.getTime()
+    const minutes = Math.floor(timeLeft / 60000)
+    const seconds = Math.floor((timeLeft % 60000) / 1000)
+    
+    return `${minutes}m ${seconds}s`
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="text-white">Loading circle...</div>
+      </div>
+    )
+  }
+
+  if (!circle) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="text-white">Circle not found</div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Circle {id}</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">{circle.name}</h1>
+        <button
+          onClick={() => navigate('/')}
+          className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Members</h2>
-          <p className="text-gray-300">No members yet</p>
+          <h2 className="text-xl font-semibold mb-4">Members ({members.length}/{circle.maxMembers})</h2>
+          {members.length === 0 ? (
+            <p className="text-gray-300">No members yet</p>
+          ) : (
+            <div className="space-y-2">
+              {members.map((member) => (
+                <div key={member.id} className="flex justify-between items-center bg-gray-700 p-3 rounded">
+                  <div>
+                    <div className="font-semibold">{member.displayName}</div>
+                    <div className="text-sm text-gray-400">Level {member.level}</div>
+                  </div>
+                  {member.id === circle.ownerId && (
+                    <span className="text-yellow-400 text-sm">👑 Owner</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
         <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Battle Log</h2>
-          <p className="text-gray-300">No battles yet</p>
+          <h2 className="text-xl font-semibold mb-4">Battle Timer</h2>
+          <div className="space-y-4">
+            <div className="bg-gray-700 p-4 rounded">
+              <div className="text-sm text-gray-400">Next Auto Battle</div>
+              <div className="text-2xl font-bold text-blue-400">{getNextBattleTime()}</div>
+            </div>
+            
+            <div className="text-sm text-gray-400">
+              <div>Battle Interval: {circle.settings.battleInterval} minutes</div>
+              <div>Last Battle: {circle.lastBattleAt ? new Date(circle.lastBattleAt).toLocaleString() : 'Never'}</div>
+            </div>
+            
+            <div className="text-xs text-gray-500">
+              💡 Battles happen automatically every {circle.settings.battleInterval} minutes when there are 2+ members
+            </div>
+          </div>
         </div>
+
         <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Weekly Events</h2>
-          <p className="text-gray-300">No events active</p>
+          <h2 className="text-xl font-semibold mb-4">Circle Info</h2>
+          <div className="space-y-2 text-sm">
+            <div><strong>Invite Code:</strong> <span className="font-mono bg-gray-700 px-2 py-1 rounded">{circle.inviteCode}</span></div>
+            <div><strong>Description:</strong> {circle.description || 'No description'}</div>
+            <div><strong>Created:</strong> {new Date(circle.createdAt).toLocaleDateString()}</div>
+            <div><strong>Settings:</strong></div>
+            <div className="ml-4 space-y-1">
+              <div>• Forging: {circle.settings.allowForging ? 'Enabled' : 'Disabled'}</div>
+              <div>• Trading: {circle.settings.allowTrades ? 'Enabled' : 'Disabled'}</div>
+            </div>
+          </div>
         </div>
-        <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Circle Feed</h2>
-          <p className="text-gray-300">No activity yet</p>
-        </div>
+
+        <ManualBattle 
+          circleId={id!} 
+          onBattleCreated={handleBattleCreated}
+        />
+      </div>
+
+      <div className="mt-6">
+        <BattleHistory 
+          key={refreshKey}
+          circleId={id!} 
+        />
       </div>
     </div>
   )
