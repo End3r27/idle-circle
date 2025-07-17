@@ -142,7 +142,7 @@ export const simulateBattle = async (
     
     // Update circle last battle time
     await updateDoc(doc(db, 'circles', battle.circleId), {
-      lastBattleAt: new Date()
+      lastBattleAt: new Date().toISOString()
     })
     
     // Award rewards to players
@@ -279,7 +279,21 @@ export const scheduleAutoBattle = async (circleId: string): Promise<void> => {
     
     const circle = circleDoc.data() as Circle
     const now = new Date()
-    const lastBattle = circle.lastBattleAt ? new Date(circle.lastBattleAt) : new Date(0)
+    let lastBattle = new Date(0) // Default to epoch
+    
+    if (circle.lastBattleAt) {
+      try {
+        lastBattle = new Date(circle.lastBattleAt)
+        // Validate the date
+        if (isNaN(lastBattle.getTime())) {
+          lastBattle = new Date(0)
+        }
+      } catch (error) {
+        console.error('Error parsing lastBattleAt:', error)
+        lastBattle = new Date(0)
+      }
+    }
+    
     const timeSinceLastBattle = now.getTime() - lastBattle.getTime()
     const battleInterval = circle.settings.battleInterval * 60 * 1000 // Convert to milliseconds
     

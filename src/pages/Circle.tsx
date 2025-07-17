@@ -22,13 +22,19 @@ export default function Circle() {
   const [loading, setLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showLoadoutManager, setShowLoadoutManager] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
     if (id && user) {
       loadCircleData()
       // Check for auto battles every 30 seconds
-      const interval = setInterval(checkForAutoBattles, 30000)
-      return () => clearInterval(interval)
+      const battleInterval = setInterval(checkForAutoBattles, 30000)
+      // Update timer every second
+      const timerInterval = setInterval(() => setCurrentTime(new Date()), 1000)
+      return () => {
+        clearInterval(battleInterval)
+        clearInterval(timerInterval)
+      }
     }
   }, [id, user])
 
@@ -80,19 +86,37 @@ export default function Circle() {
   }
 
   const getNextBattleTime = () => {
-    if (!circle?.lastBattleAt) return 'Soon'
+    if (!circle?.lastBattleAt) return 'Ready!'
     
-    const lastBattle = new Date(circle.lastBattleAt)
-    const nextBattle = new Date(lastBattle.getTime() + (circle.settings.battleInterval * 60 * 1000))
-    const now = new Date()
-    
-    if (nextBattle <= now) return 'Ready!'
-    
-    const timeLeft = nextBattle.getTime() - now.getTime()
-    const minutes = Math.floor(timeLeft / 60000)
-    const seconds = Math.floor((timeLeft % 60000) / 1000)
-    
-    return `${minutes}m ${seconds}s`
+    try {
+      const lastBattle = new Date(circle.lastBattleAt)
+      
+      // Check if the date is valid
+      if (isNaN(lastBattle.getTime())) {
+        return 'Ready!'
+      }
+      
+      const nextBattle = new Date(lastBattle.getTime() + (circle.settings.battleInterval * 60 * 1000))
+      const now = currentTime
+      
+      if (nextBattle <= now) return 'Ready!'
+      
+      const timeLeft = nextBattle.getTime() - now.getTime()
+      
+      // Ensure timeLeft is positive
+      if (timeLeft <= 0) return 'Ready!'
+      
+      const minutes = Math.floor(timeLeft / 60000)
+      const seconds = Math.floor((timeLeft % 60000) / 1000)
+      
+      // Ensure values are valid numbers
+      if (isNaN(minutes) || isNaN(seconds)) return 'Ready!'
+      
+      return `${minutes}m ${seconds}s`
+    } catch (error) {
+      console.error('Error calculating next battle time:', error)
+      return 'Ready!'
+    }
   }
 
   if (loading) {
@@ -184,7 +208,14 @@ export default function Circle() {
             
             <div className="text-sm text-gray-400">
               <div>Battle Interval: {circle.settings.battleInterval} minutes</div>
-              <div>Last Battle: {circle.lastBattleAt ? new Date(circle.lastBattleAt).toLocaleString() : 'Never'}</div>
+              <div>Last Battle: {circle.lastBattleAt ? (() => {
+                try {
+                  const date = new Date(circle.lastBattleAt)
+                  return isNaN(date.getTime()) ? 'Never' : date.toLocaleString()
+                } catch {
+                  return 'Never'
+                }
+              })() : 'Never'}</div>
             </div>
             
             <div className="text-xs text-gray-500">
