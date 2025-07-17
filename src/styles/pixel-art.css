@@ -1,0 +1,534 @@
+/* Pixel Art Battle Backgrounds and Enemy Designs */
+
+/* Battle Background Styles */
+.battle-background {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  overflow: hidden;
+}
+
+.battle-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  animation: backgroundPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes backgroundPulse {
+  0% { opacity: 0.5; }
+  100% { opacity: 0.8; }
+}
+
+/* Pixel Grid Effect */
+.pixel-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+/* Floating Particles */
+.battle-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  animation: float 6s linear infinite;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 20%; animation-delay: 1s; }
+.particle:nth-child(3) { left: 30%; animation-delay: 2s; }
+.particle:nth-child(4) { left: 40%; animation-delay: 3s; }
+.particle:nth-child(5) { left: 50%; animation-delay: 4s; }
+.particle:nth-child(6) { left: 60%; animation-delay: 5s; }
+.particle:nth-child(7) { left: 70%; animation-delay: 0.5s; }
+.particle:nth-child(8) { left: 80%; animation-delay: 1.5s; }
+.particle:nth-child(9) { left: 90%; animation-delay: 2.5s; }
+
+@keyframes float {
+  0% { 
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Pixel Enemy Designs */
+.pixel-enemy {
+  position: relative;
+  display: inline-block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  animation: enemyIdle 2s ease-in-out infinite alternate;
+}
+
+@keyframes enemyIdle {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-5px); }
+}
+
+.pixel-enemy.attacking {
+  animation: enemyAttack 0.6s ease-in-out;
+}
+
+@keyframes enemyAttack {
+  0% { transform: translateX(0px) scale(1); }
+  25% { transform: translateX(-10px) scale(1.1); }
+  50% { transform: translateX(5px) scale(1.05); }
+  100% { transform: translateX(0px) scale(1); }
+}
+
+.pixel-enemy.damaged {
+  animation: enemyDamage 0.4s ease-in-out;
+}
+
+@keyframes enemyDamage {
+  0% { transform: translateX(0px); filter: hue-rotate(0deg); }
+  25% { transform: translateX(5px); filter: hue-rotate(180deg); }
+  50% { transform: translateX(-5px); filter: hue-rotate(180deg); }
+  75% { transform: translateX(3px); filter: hue-rotate(180deg); }
+  100% { transform: translateX(0px); filter: hue-rotate(0deg); }
+}
+
+/* Goblin Pixel Art */
+.pixel-goblin {
+  width: 64px;
+  height: 64px;
+  background: 
+    /* Head */
+    radial-gradient(circle at 32px 20px, #4a5d23 8px, transparent 8px),
+    /* Eyes */
+    radial-gradient(circle at 28px 18px, #ff0000 2px, transparent 2px),
+    radial-gradient(circle at 36px 18px, #ff0000 2px, transparent 2px),
+    /* Body */
+    linear-gradient(to bottom, transparent 25px, #2d3d0f 25px, #2d3d0f 45px, transparent 45px),
+    /* Arms */
+    linear-gradient(90deg, transparent 15px, #4a5d23 15px, #4a5d23 20px, transparent 20px, transparent 44px, #4a5d23 44px, #4a5d23 49px, transparent 49px),
+    /* Legs */
+    linear-gradient(90deg, transparent 25px, #2d3d0f 25px, #2d3d0f 30px, transparent 30px, transparent 34px, #2d3d0f 34px, #2d3d0f 39px, transparent 39px);
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Wolf Pixel Art */
+.pixel-wolf {
+  width: 80px;
+  height: 48px;
+  background: 
+    /* Head */
+    radial-gradient(ellipse 20px 12px at 20px 20px, #654321 20px, transparent 20px),
+    /* Body */
+    radial-gradient(ellipse 35px 15px at 50px 25px, #654321 35px, transparent 35px),
+    /* Tail */
+    radial-gradient(ellipse 15px 8px at 70px 20px, #654321 15px, transparent 15px),
+    /* Eyes */
+    radial-gradient(circle at 15px 18px, #ffff00 2px, transparent 2px),
+    radial-gradient(circle at 20px 18px, #ffff00 2px, transparent 2px),
+    /* Legs */
+    linear-gradient(to bottom, transparent 35px, #654321 35px, #654321 45px, transparent 45px);
+  background-repeat: no-repeat;
+}
+
+/* Spider Pixel Art */
+.pixel-spider {
+  width: 60px;
+  height: 60px;
+  background: 
+    /* Body */
+    radial-gradient(circle at 30px 30px, #2d1b69 12px, transparent 12px),
+    /* Legs */
+    linear-gradient(45deg, transparent 20px, #2d1b69 20px, #2d1b69 22px, transparent 22px),
+    linear-gradient(-45deg, transparent 20px, #2d1b69 20px, #2d1b69 22px, transparent 22px),
+    linear-gradient(135deg, transparent 20px, #2d1b69 20px, #2d1b69 22px, transparent 22px),
+    linear-gradient(-135deg, transparent 20px, #2d1b69 20px, #2d1b69 22px, transparent 22px),
+    /* Eyes */
+    radial-gradient(circle at 28px 25px, #ff0000 2px, transparent 2px),
+    radial-gradient(circle at 32px 25px, #ff0000 2px, transparent 2px);
+  background-repeat: no-repeat;
+}
+
+/* Slime Pixel Art */
+.pixel-slime {
+  width: 56px;
+  height: 40px;
+  background: 
+    /* Main body */
+    radial-gradient(ellipse 25px 18px at 28px 25px, #00ff88 25px, transparent 25px),
+    /* Shine effect */
+    radial-gradient(ellipse 8px 6px at 22px 18px, rgba(255,255,255,0.6) 8px, transparent 8px),
+    /* Eyes */
+    radial-gradient(circle at 23px 22px, #000000 2px, transparent 2px),
+    radial-gradient(circle at 33px 22px, #000000 2px, transparent 2px);
+  background-repeat: no-repeat;
+  animation: slimeBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes slimeBounce {
+  0%, 100% { transform: scaleY(1) scaleX(1); }
+  50% { transform: scaleY(0.8) scaleX(1.1); }
+}
+
+/* Dragon Pixel Art */
+.pixel-dragon {
+  width: 120px;
+  height: 80px;
+  background: 
+    /* Head */
+    radial-gradient(ellipse 25px 20px at 30px 30px, #8b0000 25px, transparent 25px),
+    /* Body */
+    radial-gradient(ellipse 40px 25px at 70px 40px, #8b0000 40px, transparent 40px),
+    /* Wings */
+    radial-gradient(ellipse 30px 20px at 50px 20px, #654321 30px, transparent 30px),
+    radial-gradient(ellipse 30px 20px at 90px 25px, #654321 30px, transparent 30px),
+    /* Eyes */
+    radial-gradient(circle at 25px 25px, #ffff00 3px, transparent 3px),
+    radial-gradient(circle at 35px 25px, #ffff00 3px, transparent 3px),
+    /* Horns */
+    linear-gradient(45deg, transparent 15px, #000000 15px, #000000 18px, transparent 18px),
+    linear-gradient(-45deg, transparent 15px, #000000 15px, #000000 18px, transparent 18px);
+  background-repeat: no-repeat;
+  animation: dragonBreath 3s ease-in-out infinite;
+}
+
+@keyframes dragonBreath {
+  0%, 90%, 100% { filter: hue-rotate(0deg); }
+  95% { filter: hue-rotate(60deg) brightness(1.3); }
+}
+
+/* Skeleton Pixel Art */
+.pixel-skeleton {
+  width: 48px;
+  height: 64px;
+  background: 
+    /* Skull */
+    radial-gradient(circle at 24px 16px, #f5f5dc 10px, transparent 10px),
+    /* Eye sockets */
+    radial-gradient(circle at 20px 14px, #000000 2px, transparent 2px),
+    radial-gradient(circle at 28px 14px, #000000 2px, transparent 2px),
+    /* Ribcage */
+    linear-gradient(to bottom, transparent 25px, #f5f5dc 25px, #f5f5dc 45px, transparent 45px),
+    /* Arms */
+    linear-gradient(90deg, transparent 10px, #f5f5dc 10px, #f5f5dc 15px, transparent 15px, transparent 33px, #f5f5dc 33px, #f5f5dc 38px, transparent 38px),
+    /* Legs */
+    linear-gradient(90deg, transparent 18px, #f5f5dc 18px, #f5f5dc 23px, transparent 23px, transparent 25px, #f5f5dc 25px, #f5f5dc 30px, transparent 30px);
+  background-repeat: no-repeat;
+  animation: skeletonRattle 2s ease-in-out infinite;
+}
+
+@keyframes skeletonRattle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(1deg); }
+  75% { transform: rotate(-1deg); }
+}
+
+/* Phoenix Pixel Art */
+.pixel-phoenix {
+  width: 80px;
+  height: 80px;
+  background: 
+    /* Body */
+    radial-gradient(ellipse 20px 25px at 40px 45px, #ff4500 20px, transparent 20px),
+    /* Head */
+    radial-gradient(circle at 40px 25px, #ff6347 12px, transparent 12px),
+    /* Wings */
+    radial-gradient(ellipse 25px 15px at 20px 35px, #ff8c00 25px, transparent 25px),
+    radial-gradient(ellipse 25px 15px at 60px 35px, #ff8c00 25px, transparent 25px),
+    /* Tail feathers */
+    radial-gradient(ellipse 15px 20px at 40px 65px, #ffd700 15px, transparent 15px),
+    /* Eyes */
+    radial-gradient(circle at 38px 22px, #ffff00 2px, transparent 2px),
+    radial-gradient(circle at 42px 22px, #ffff00 2px, transparent 2px),
+    /* Flame aura */
+    radial-gradient(circle at 40px 40px, rgba(255, 69, 0, 0.3) 35px, transparent 35px);
+  background-repeat: no-repeat;
+  animation: phoenixFlame 2s ease-in-out infinite alternate;
+}
+
+@keyframes phoenixFlame {
+  0% { 
+    filter: hue-rotate(0deg) brightness(1);
+    transform: scale(1);
+  }
+  100% { 
+    filter: hue-rotate(30deg) brightness(1.2);
+    transform: scale(1.05);
+  }
+}
+
+/* Elemental Effects */
+.fire-element {
+  position: relative;
+}
+
+.fire-element::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: fireGlow 1.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes fireGlow {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  100% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.ice-element::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: radial-gradient(circle, rgba(173, 216, 230, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: iceGlow 2s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes iceGlow {
+  0% { opacity: 0.2; }
+  100% { opacity: 0.6; }
+}
+
+.dark-element::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  background: radial-gradient(circle, rgba(75, 0, 130, 0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: darkPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes darkPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.95); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.lightning-element::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: -12px;
+  bottom: -12px;
+  background: 
+    radial-gradient(circle, rgba(255, 255, 0, 0.4) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 40%, rgba(255, 255, 0, 0.8) 45%, rgba(255, 255, 0, 0.8) 55%, transparent 60%);
+  border-radius: 50%;
+  animation: lightningStrike 0.1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes lightningStrike {
+  0%, 90% { opacity: 0; }
+  95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Battle UI Enhancements */
+.pixel-health-bar {
+  background: linear-gradient(90deg, #ff0000 0%, #ffff00 50%, #00ff00 100%);
+  height: 8px;
+  border: 2px solid #000;
+  border-radius: 0;
+  image-rendering: pixelated;
+  position: relative;
+}
+
+.pixel-health-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.1) 3px,
+    rgba(0,0,0,0.1) 4px
+  );
+}
+
+.pixel-damage-number {
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 18px;
+  color: #ff4444;
+  text-shadow: 2px 2px 0px #000;
+  animation: damageFloat 1s ease-out forwards;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+@keyframes damageFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.8);
+  }
+}
+
+.pixel-heal-number {
+  color: #44ff44;
+  animation: healFloat 1s ease-out forwards;
+}
+
+@keyframes healFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.9);
+  }
+}
+
+/* Rarity Glows */
+.rarity-common { filter: drop-shadow(0 0 5px #22c55e); }
+.rarity-rare { filter: drop-shadow(0 0 8px #3b82f6); }
+.rarity-epic { filter: drop-shadow(0 0 10px #a855f7); }
+.rarity-legendary { filter: drop-shadow(0 0 12px #f97316); }
+.rarity-mythic { filter: drop-shadow(0 0 15px #ef4444); }
+
+/* Battle Arena Floor */
+.battle-arena {
+  position: relative;
+  background: 
+    linear-gradient(90deg, #2d2d2d 0%, #3d3d3d 50%, #2d2d2d 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 19px,
+      rgba(255,255,255,0.1) 19px,
+      rgba(255,255,255,0.1) 20px
+    );
+  border-top: 4px solid #555;
+  min-height: 100px;
+}
+
+.battle-arena::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pixel-enemy {
+    transform: scale(0.8);
+  }
+  
+  .pixel-dragon {
+    transform: scale(0.7);
+  }
+  
+  .battle-background {
+    min-height: 100vh;
+  }
+}
+
+/* Animation States */
+.enemy-entering {
+  animation: enemyEnter 1s ease-out;
+}
+
+@keyframes enemyEnter {
+  0% {
+    opacity: 0;
+    transform: translateX(100px) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px) scale(1);
+  }
+}
+
+.enemy-defeated {
+  animation: enemyDefeat 1s ease-in forwards;
+}
+
+@keyframes enemyDefeat {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0) rotate(180deg);
+  }
+}
+
+/* Critical Hit Effect */
+.critical-hit {
+  animation: criticalFlash 0.3s ease-in-out;
+}
+
+@keyframes criticalFlash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(2) hue-rotate(60deg); }
+}

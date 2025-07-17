@@ -72,10 +72,6 @@ This app is designed to work as a Progressive Web App (PWA) with:
 
 #### **New Battle Modes**
 - **Boss Raids**: Weekly mega-bosses requiring coordinated circle attacks
-- **Dungeon Crawler**: Multi-floor challenges with increasing difficulty
-- **Tournament Mode**: Bracket-style PvP competitions with seasonal rewards
-- **Survival Arena**: Endless waves of monsters with leaderboards
-- **Time Attack**: Speed-run challenges with time-based rewards
 
 #### **Environmental Battles**
 - **Volcanic Caverns**: Fire damage over time, lava hazards

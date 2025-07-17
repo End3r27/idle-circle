@@ -3,6 +3,8 @@ import { Battle, User } from '../types'
 import { getMonsterRarityColor, getMonsterRarityName } from '../services/monsters'
 import { CLASS_DEFINITIONS } from '../types/classes'
 import { getClassStartingStats } from '../services/classSystem'
+import PixelBattleBackground from './PixelBattleBackground'
+import PixelEnemy from './PixelEnemy'
 
 interface AutoBattleScreenProps {
   battle: Battle
@@ -103,189 +105,223 @@ export default function AutoBattleScreen({
     }, 5000)
   }
 
+  // Get battle environment based on monster element
+  const getBattleEnvironment = () => {
+    if (!monster.element) return 'dungeon'
+    switch (monster.element) {
+      case 'fire': return 'volcano'
+      case 'water': return 'ice'
+      case 'earth': return 'forest'
+      case 'ice': return 'ice'
+      case 'dark': return 'void'
+      case 'light': return 'celestial'
+      case 'poison': return 'forest'
+      case 'lightning': return 'void'
+      default: return 'dungeon'
+    }
+  }
+
+  const getBattleIntensity = () => {
+    if (battlePhase === 'starting') return 'calm'
+    if (battlePhase === 'fighting') return 'active'
+    return 'intense'
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 animate-fade-in">
-      <div className="w-full max-w-6xl mx-4 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl overflow-hidden border border-gray-700">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-red-600/80 to-orange-600/80 p-4 text-center">
-          <h2 className="text-2xl font-bold text-white">
-            {battle.type === 'solo' ? '⚔️ Solo Battle' : '🏰 Circle Battle'}
-          </h2>
-          <p className="text-gray-200 text-sm">
-            {battlePhase === 'starting' && 'Preparing for battle...'}
-            {battlePhase === 'fighting' && 'Battle in progress!'}
-            {battlePhase === 'finished' && (
-              battle.result.winner === 'player' ? 'Victory!' : 
-              battle.result.winner === 'monster' ? 'Defeat!' : 'Draw!'
-            )}
-          </p>
-        </div>
-
-        {/* Burst Effect Overlay */}
-        {burstAnimation && (
-          <div className="absolute inset-0 pointer-events-none z-50">
-            <div className={`w-full h-full burst-overlay-${burstAnimation} opacity-80`}>
-              {/* Particle effects */}
-              <div className="absolute inset-0 overflow-hidden">
-                {[...Array(20)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`absolute w-2 h-2 bg-white rounded-full animate-pulse burst-particle-${i}`}
-                    style={{
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      animationDelay: `${Math.random() * 2}s`,
-                      animationDuration: `${1 + Math.random() * 2}s`
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl font-bold text-white animate-bounce">
-                💥
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Battle Arena */}
-        <div className="p-8">
-          <div className="grid grid-cols-3 gap-8 items-center mb-8">
-            {/* Player Side */}
-            <div className="text-center">
-              <div className={`w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-6xl transition-all duration-500 ${
-                animatingDamage === 'player' ? 'animate-pulse scale-110 ring-4 ring-red-500' : ''
-              } ${burstAnimation ? `burst-${burstAnimation}` : ''}`}>
-                👤
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-white">{user.displayName}</h3>
-                <div className="text-sm text-gray-400">Level {user.level}</div>
-                
-                {/* Burst Ability Status */}
-                {(() => {
-                  const userClass = CLASS_DEFINITIONS.find((c: any) => c.id === user.playerClass);
-                  const burstAbility = userClass?.burst;
-                  return burstAbility ? (
-                    <div className="text-xs text-purple-400">
-                      💥 {burstAbility.name} Ready
-                    </div>
-                  ) : null;
-                })()}
-                
-                {/* Player Health Bar */}
-                <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-1000 ease-out"
-                    style={{ width: `${playerHealth}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-300">{Math.round(playerHealth)}% HP</div>
-              </div>
-            </div>
-
-            {/* VS */}
-            <div className="text-center">
-              <div className="text-4xl font-bold text-gray-500 mb-4">VS</div>
-              {battlePhase === 'fighting' && (
-                <div className="text-sm text-gray-400 animate-pulse">
-                  Round {Math.floor(currentLog / 2) + 1}
-                </div>
+    <div className="fixed inset-0 z-50">
+      <PixelBattleBackground 
+        environment={getBattleEnvironment() as any}
+        intensity={getBattleIntensity() as any}
+      >
+        <div className="relative z-10 min-h-screen flex flex-col">
+          {/* Header */}
+          <div className="bg-black/70 backdrop-blur-sm p-4 text-center border-b border-gray-700">
+            <h2 className="text-2xl font-bold text-white">
+              {battle.type === 'solo' ? '⚔️ Solo Battle' : '🏰 Circle Battle'}
+            </h2>
+            <p className="text-gray-200 text-sm">
+              {battlePhase === 'starting' && 'Preparing for battle...'}
+              {battlePhase === 'fighting' && 'Battle in progress!'}
+              {battlePhase === 'finished' && (
+                battle.result.winner === 'player' ? 'Victory!' : 
+                battle.result.winner === 'monster' ? 'Defeat!' : 'Draw!'
               )}
-            </div>
-
-            {/* Monster Side */}
-            <div className="text-center">
-              <div className={`w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center text-6xl transition-all duration-500 ${
-                animatingDamage === 'monster' ? 'animate-pulse scale-110 ring-4 ring-red-500' : ''
-              }`}>
-                {monster.icon}
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-white">{monster.name}</h3>
-                <div className={`text-sm ${getMonsterRarityColor(getMonsterRarityName(monster.level).toLowerCase())}`}>
-                  Level {monster.level} • {getMonsterRarityName(monster.level)}
-                </div>
-                
-                {/* Monster Health Bar */}
-                <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-red-500 to-red-400 transition-all duration-1000 ease-out"
-                    style={{ width: `${monsterHealth}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-300">{Math.round(monsterHealth)}% HP</div>
-              </div>
-            </div>
+            </p>
           </div>
 
-          {/* Battle Log */}
-          <div className="bg-black/50 rounded-xl p-4 h-32 overflow-hidden">
-            <div className="text-center text-gray-400 mb-2 text-sm">Battle Log</div>
-            <div className="space-y-1 text-sm">
-              {logs.slice(0, currentLog + 1).slice(-3).map((log, index) => (
-                <div 
-                  key={index} 
-                  className={`text-gray-300 animate-fade-in ${
-                    index === logs.slice(0, currentLog + 1).slice(-3).length - 1 ? 'text-white font-medium' : ''
-                  }`}
-                >
-                  {log}
+          {/* Burst Effect Overlay */}
+          {burstAnimation && (
+            <div className="absolute inset-0 pointer-events-none z-50">
+              <div className={`w-full h-full burst-overlay-${burstAnimation} opacity-80`}>
+                {/* Particle effects */}
+                <div className="absolute inset-0 overflow-hidden">
+                  {[...Array(20)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`absolute w-2 h-2 bg-white rounded-full animate-pulse burst-particle-${i}`}
+                      style={{
+                        left: `${Math.random() * 100}%`,
+                        top: `${Math.random() * 100}%`,
+                        animationDelay: `${Math.random() * 2}s`,
+                        animationDuration: `${1 + Math.random() * 2}s`
+                      }}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Results */}
-          {battlePhase === 'finished' && (
-            <div className="mt-6 text-center animate-fade-in">
-              <div className={`text-2xl font-bold mb-4 ${
-                battle.result.winner === 'player' ? 'text-green-400' :
-                battle.result.winner === 'monster' ? 'text-red-400' : 'text-yellow-400'
-              }`}>
-                {battle.result.winner === 'player' && '🏆 Victory!'}
-                {battle.result.winner === 'monster' && '💀 Defeat!'}
-                {battle.result.winner === 'draw' && '🤝 Draw!'}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl font-bold text-white animate-bounce">
+                  💥
+                </div>
               </div>
-              
-              {battle.result.rewards.length > 0 && (
-                <div className="bg-black/30 rounded-xl p-4 max-w-md mx-auto">
-                  <div className="text-lg font-semibold text-white mb-2">Rewards</div>
-                  {battle.result.rewards.map((reward, index) => (
-                    <div key={index} className="text-sm text-gray-300">
-                      <div>+{reward.experience} XP</div>
-                      {reward.currency && <div>+{reward.currency} Gold</div>}
-                      {reward.items.length > 0 && (
-                        <div>+{reward.items.length} Item{reward.items.length > 1 ? 's' : ''}</div>
-                      )}
+            </div>
+          )}
+
+          {/* Battle Arena */}
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="w-full max-w-6xl">
+              <div className="grid grid-cols-3 gap-8 items-center mb-8">
+                {/* Player Side */}
+                <div className="text-center">
+                  <div className={`w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-6xl transition-all duration-500 ${
+                    animatingDamage === 'player' ? 'animate-pulse scale-110 ring-4 ring-red-500' : ''
+                  } ${burstAnimation ? `burst-${burstAnimation}` : ''}`}>
+                    👤
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-white drop-shadow-lg">{user.displayName}</h3>
+                    <div className="text-sm text-gray-300 drop-shadow">Level {user.level}</div>
+                    
+                    {/* Burst Ability Status */}
+                    {(() => {
+                      const userClass = CLASS_DEFINITIONS.find((c: any) => c.id === user.playerClass);
+                      const burstAbility = userClass?.burst;
+                      return burstAbility ? (
+                        <div className="text-xs text-purple-400 drop-shadow">
+                          💥 {burstAbility.name} Ready
+                        </div>
+                      ) : null;
+                    })()}
+                    
+                    {/* Player Health Bar */}
+                    <div className="w-full pixel-health-bar">
+                      <div 
+                        className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-1000 ease-out"
+                        style={{ width: `${playerHealth}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-200 drop-shadow">{Math.round(playerHealth)}% HP</div>
+                  </div>
+                </div>
+
+                {/* VS */}
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-white drop-shadow-lg mb-4">VS</div>
+                  {battlePhase === 'fighting' && (
+                    <div className="text-sm text-gray-300 animate-pulse drop-shadow">
+                      Round {Math.floor(currentLog / 2) + 1}
+                    </div>
+                  )}
+                </div>
+
+                {/* Monster Side */}
+                <div className="text-center">
+                  <div className="flex justify-center mb-4">
+                    <PixelEnemy 
+                      monster={monster}
+                      isAttacking={animatingDamage === 'player'}
+                      isDamaged={animatingDamage === 'monster'}
+                      isDefeated={battlePhase === 'finished' && battle.result.winner === 'player'}
+                      showDamage={animatingDamage === 'monster' ? Math.floor(Math.random() * 50) + 20 : undefined}
+                      className="scale-150"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-white drop-shadow-lg">{monster.name}</h3>
+                    <div className={`text-sm drop-shadow ${getMonsterRarityColor(getMonsterRarityName(monster.level).toLowerCase())}`}>
+                      Level {monster.level} • {getMonsterRarityName(monster.level)}
+                    </div>
+                    
+                    {/* Monster Health Bar */}
+                    <div className="w-full pixel-health-bar">
+                      <div 
+                        className="h-full bg-gradient-to-r from-red-500 to-red-400 transition-all duration-1000 ease-out"
+                        style={{ width: `${monsterHealth}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-200 drop-shadow">{Math.round(monsterHealth)}% HP</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Battle Log */}
+              <div className="bg-black/50 rounded-xl p-4 h-32 overflow-hidden">
+                <div className="text-center text-gray-400 mb-2 text-sm">Battle Log</div>
+                <div className="space-y-1 text-sm">
+                  {logs.slice(0, currentLog + 1).slice(-3).map((log, index) => (
+                    <div 
+                      key={index} 
+                      className={`text-gray-300 animate-fade-in ${
+                        index === logs.slice(0, currentLog + 1).slice(-3).length - 1 ? 'text-white font-medium' : ''
+                      }`}
+                    >
+                      {log}
                     </div>
                   ))}
                 </div>
-              )}
-              
-              <div className="text-sm text-gray-500 mt-4">
-                Closing automatically in 5 seconds...
               </div>
-            </div>
-          )}
 
-          {/* Close Button */}
-          {battlePhase === 'finished' && (
-            <div className="text-center mt-4">
-              <button
-                onClick={() => {
-                  onBattleComplete(battle.result)
-                  onClose()
-                }}
-                className="button-primary px-6 py-3 rounded-xl font-medium"
-              >
-                Continue
-              </button>
+              {/* Results */}
+              {battlePhase === 'finished' && (
+                <div className="mt-6 text-center animate-fade-in">
+                  <div className={`text-2xl font-bold mb-4 drop-shadow-lg ${
+                    battle.result.winner === 'player' ? 'text-green-400' :
+                    battle.result.winner === 'monster' ? 'text-red-400' : 'text-yellow-400'
+                  }`}>
+                    {battle.result.winner === 'player' && '🏆 Victory!'}
+                    {battle.result.winner === 'monster' && '💀 Defeat!'}
+                    {battle.result.winner === 'draw' && '🤝 Draw!'}
+                  </div>
+                  
+                  {battle.result.rewards.length > 0 && (
+                    <div className="bg-black/70 backdrop-blur-sm rounded-xl p-4 max-w-md mx-auto border border-gray-600">
+                      <div className="text-lg font-semibold text-white mb-2">Rewards</div>
+                      {battle.result.rewards.map((reward, index) => (
+                        <div key={index} className="text-sm text-gray-300">
+                          <div>+{reward.experience} XP</div>
+                          {reward.currency && <div>+{reward.currency} Gold</div>}
+                          {reward.items.length > 0 && (
+                            <div>+{reward.items.length} Item{reward.items.length > 1 ? 's' : ''}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="text-sm text-gray-400 mt-4 drop-shadow">
+                    Closing automatically in 5 seconds...
+                  </div>
+                </div>
+              )}
+
+              {/* Close Button */}
+              {battlePhase === 'finished' && (
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => {
+                      onBattleComplete(battle.result)
+                      onClose()
+                    }}
+                    className="button-primary px-6 py-3 rounded-xl font-medium"
+                  >
+                    Continue
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      </PixelBattleBackground>
     </div>
   )
 }

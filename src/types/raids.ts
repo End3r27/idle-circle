@@ -14,6 +14,7 @@ export interface BossRaid {
   status: 'upcoming' | 'active' | 'completed' | 'failed'
   startTime: Date
   endTime: Date
+  expirationTime: Date // Raid expires after 30 minutes regardless of status
   participants: RaidParticipant[]
   totalDamageDealt: number
   createdAt: Date

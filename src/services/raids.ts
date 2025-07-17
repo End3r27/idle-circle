@@ -23,6 +23,12 @@ export const createRaid = async (
   hostUserId: string
 ): Promise<{ success: boolean; raidId?: string; error?: string }> => {
   try {
+    // Check if there are already 3 active raids
+    const activeRaids = await getActiveRaids()
+    if (activeRaids.length >= 3) {
+      return { success: false, error: 'Maximum of 3 active raids allowed. Please wait for a raid to complete.' }
+    }
+
     const template = RAID_TEMPLATES.find(t => t.id === templateId)
     if (!template) {
       return { success: false, error: 'Raid template not found' }
@@ -47,6 +53,8 @@ export const createRaid = async (
     }
 
     const now = new Date()
+    const expirationTime = new Date(now.getTime() + 30 * 60 * 1000) // 30 minutes from creation
+    
     const raid: Omit<BossRaid, 'id'> = {
       name: template.name,
       description: template.description,
@@ -63,6 +71,7 @@ export const createRaid = async (
       status: 'upcoming',
       startTime: new Date(now.getTime() + 5 * 60 * 1000), // Start in 5 minutes
       endTime: new Date(now.getTime() + (difficulty === 'hell' ? 30 : 15) * 60 * 1000 + 5 * 60 * 1000),
+      expirationTime, // Raid expires after 30 minutes regardless of status
       participants: [],
       totalDamageDealt: 0,
       createdAt: now,
@@ -71,6 +80,26 @@ export const createRaid = async (
 
     const raidRef = await addDoc(collection(db, 'raids'), raid)
     console.log('Raid created:', raidRef.id)
+
+    // Set up automatic expiration
+    setTimeout(async () => {
+      try {
+        const expiredRaidDoc = await getDoc(raidRef)
+        if (expiredRaidDoc.exists()) {
+          const expiredRaid = expiredRaidDoc.data() as BossRaid
+          if (expiredRaid.status === 'upcoming' || expiredRaid.status === 'active') {
+            await updateDoc(raidRef, {
+              status: 'failed',
+              endTime: new Date(),
+              updatedAt: new Date()
+            })
+            console.log(`Raid ${raidRef.id} expired after 30 minutes`)
+          }
+        }
+      } catch (error) {
+        console.error('Error expiring raid:', error)
+      }
+    }, 30 * 60 * 1000) // 30 minutes
 
     return { success: true, raidId: raidRef.id }
   } catch (error) {
@@ -272,10 +301,32 @@ export const getActiveRaids = async (): Promise<BossRaid[]> => {
     )
     
     const raidsSnapshot = await getDocs(raidsQuery)
-    return raidsSnapshot.docs.map(doc => ({
+    const raids = raidsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     } as BossRaid))
+
+    // Filter out expired raids and clean them up
+    const now = new Date()
+    const activeRaids = []
+    
+    for (const raid of raids) {
+      if (raid.expirationTime && new Date(raid.expirationTime) <= now) {
+        // Raid has expired, mark it as failed
+        if (raid.status === 'upcoming' || raid.status === 'active') {
+          await updateDoc(doc(db, 'raids', raid.id), {
+            status: 'failed',
+            endTime: now,
+            updatedAt: now
+          })
+          console.log(`Raid ${raid.id} expired and marked as failed`)
+        }
+      } else {
+        activeRaids.push(raid)
+      }
+    }
+    
+    return activeRaids
   } catch (error) {
     console.error('Error getting active raids:', error)
     return []
@@ -335,4 +386,34 @@ export const subscribeToRaid = (raidId: string, callback: (raid: BossRaid | null
       callback(null)
     }
   })
+}
+
+// Utility function to clean up expired raids
+export const cleanupExpiredRaids = async (): Promise<{ cleaned: number }> => {
+  try {
+    const now = new Date()
+    const raidsQuery = query(
+      collection(db, 'raids'),
+      where('status', 'in', ['upcoming', 'active']),
+      where('expirationTime', '<=', now)
+    )
+    
+    const expiredRaidsSnapshot = await getDocs(raidsQuery)
+    let cleanedCount = 0
+    
+    for (const raidDoc of expiredRaidsSnapshot.docs) {
+      await updateDoc(raidDoc.ref, {
+        status: 'failed',
+        endTime: now,
+        updatedAt: now
+      })
+      cleanedCount++
+      console.log(`Cleaned up expired raid: ${raidDoc.id}`)
+    }
+    
+    return { cleaned: cleanedCount }
+  } catch (error) {
+    console.error('Error cleaning up expired raids:', error)
+    return { cleaned: 0 }
+  }
 }

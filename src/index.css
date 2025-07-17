@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import pixel art styles */
+@import './styles/pixel-art.css';
+
 :root {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
